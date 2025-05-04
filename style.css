@@ -40,6 +40,7 @@ th, td {
 
 img {
   max-height: 30px;
+  max-width: 30px;
 }
 
 .text-logo {
@@ -94,4 +95,35 @@ button:hover {
 #status-container {
   min-height: 30px;
   margin: 15px 0;
+}
+
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.5rem;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+}
+
+.team-name {
+  font-weight: bold;
+}
+
+.text-logo {
+  font-weight: bold;
+  font-size: 18px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 } 
