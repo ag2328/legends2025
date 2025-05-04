@@ -43,6 +43,7 @@ header {
 .stats-header .stat {
   width: 40px;
   text-align: center;
+  margin: 0 5px;
 }
 
 .team-row {
@@ -74,24 +75,36 @@ header {
 .team-stats .stat {
   width: 40px;
   text-align: center;
+  margin: 0 5px;
 }
 
 .stat-value {
   font-weight: bold;
+  display: inline-block;
+  width: 100%;
 }
 
 .logo-container {
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  max-width: 30px;
+  min-height: 30px;
+  max-height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .logo-container img {
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  max-width: 30px;
+  min-height: 30px;
+  max-height: 30px;
   object-fit: contain;
   display: block;
 }
@@ -99,12 +112,17 @@ header {
 .text-logo {
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  max-width: 30px;
+  min-height: 30px;
+  max-height: 30px;
   border-radius: 50%;
   background-color: #ddd;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  font-size: 14px;
 }
 
 .team-name {
