@@ -71,59 +71,53 @@ function parseCSV(csvText) {
     return { headers, data };
 }
 
-// Render the leaderboard with new card-based design
+// Render the leaderboard with Yahoo-style grid layout
 function renderLeaderboard(leaderboardData) {
     if (!leaderboardData || !leaderboardData.data.length) {
         standingsContainer.innerHTML = '<div class="error">No data available</div>';
         return;
     }
-    
+
     // Sort data by points (descending), then by wins, then by goals scored
     const sortedData = [...leaderboardData.data].sort((a, b) => {
-        // First tiebreaker: Points
         const pointsDiff = b.Points - a.Points;
         if (pointsDiff !== 0) return pointsDiff;
-        
-        // Second tiebreaker: Wins
         const winsDiff = b.Wins - a.Wins;
         if (winsDiff !== 0) return winsDiff;
-        
-        // Third tiebreaker: Goals Scored
         return b['Goals Scored'] - a['Goals Scored'];
     });
-    
+
     let html = '';
+    // Header row
+    html += `
+      <div class="standings-header">
+        <div></div>
+        <div class="header-team">TEAM</div>
+        <div class="header-gp">GP</div>
+        <div class="header-w">W</div>
+        <div class="header-l">L</div>
+        <div class="header-t">T</div>
+        <div class="header-gs">GS</div>
+        <div class="header-pts">PTS</div>
+      </div>
+    `;
+    // Team rows
     sortedData.forEach((team) => {
-        // Convert team name to slug for image path
         const teamSlug = team.Team.toLowerCase().replace(/\s+/g, '_');
         const logoPath = `static/logos/${teamSlug}.png`;
-        
         html += `
-            <div class="team-card">
-                <div class="team-logo-container">
-                    <img src="${logoPath}" alt="${team.Team}" class="team-logo" onerror="this.src='/api/placeholder/36/36'">
-                </div>
-                <div class="team-name">${team.Team}</div>
-                <div class="record">${team.Wins}-${team.Losses}-${team.Ties}</div>
-                
-                <div class="gp-container">
-                    <div class="stat-label">GP</div>
-                    <div class="stat-value">${team['Games Played']}</div>
-                </div>
-                
-                <div class="gf-container">
-                    <div class="stat-label">GS</div>
-                    <div class="stat-value">${team['Goals Scored']}</div>
-                </div>
-                
-                <div class="points-container">
-                    <div class="stat-label">PTS</div>
-                    <div class="stat-value">${team.Points}</div>
-                </div>
-            </div>
+          <div class="standings-row">
+            <img class="team-logo" src="${logoPath}" alt="${team.Team}" onerror="this.src='/api/placeholder/36/36'">
+            <div class="team-name">${team.Team}</div>
+            <div class="team-gp">${team['Games Played']}</div>
+            <div class="team-w">${team.Wins}</div>
+            <div class="team-l">${team.Losses}</div>
+            <div class="team-t">${team.Ties}</div>
+            <div class="team-gs">${team['Goals Scored']}</div>
+            <div class="team-pts">${team.Points}</div>
+          </div>
         `;
     });
-    
     standingsContainer.innerHTML = html;
 }
 
