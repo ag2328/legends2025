@@ -49,4 +49,35 @@ footer {
 
 button {
   padding: 0.5rem 1rem;
-  font-size:
+  font-size: 0.9rem;
+  background: #004080;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00569b;
+}
+
+/* Add loading indicator styles */
+.loading {
+  display: inline-block;
+  margin-top: 10px;
+  font-style: italic;
+  color: #666;
+}
+
+/* Add error message styles */
+.error-message {
+  color: #d9534f;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* Add fallback for missing images */
+img.error {
+  border: 1px dashed #ccc;
+  background: #f5f5f5;
+}
