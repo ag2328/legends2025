@@ -65,27 +65,42 @@ async function fetchData() {
   showLoadingMessage();
   
   try {
-    // Try to fetch data from Google Sheets
-    const data = await fetchAndParseCSV();
+    // Try to fetch from Google Sheets
+    const response = await fetch(SHEET_URL);
     
-    if (!data || data.length === 0) {
-      throw new Error("No data returned from server");
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
     }
     
-    // Render the table with the fetched data
-    renderTable(data);
-    updateTimestamp();
+    const csv = await response.text();
+    
+    if (!csv || csv.trim() === "") {
+      throw new Error("Empty data received");
+    }
+    
+    const data = parseCSV(csv);
+    
+    // Check if all values are 0 (season hasn't started)
+    const isSeasonStarted = data.some(team => 
+      team.w > 0 || team.l > 0 || team.t > 0 || team.pts > 0 || team.gf > 0
+    );
+    
+    if (!isSeasonStarted) {
+      showErrorMessage("Season starts soon! Using placeholder data until games begin.");
+      renderTable(FALLBACK_DATA);
+      updateTimestamp("(season starts soon)");
+    } else {
+      renderTable(data);
+      updateTimestamp();
+    }
+    
     hideLoadingMessage();
     hideErrorMessage();
   } catch (err) {
     console.error("Error loading standings:", err);
-    
-    // Show error message to the user
-    showErrorMessage("Unable to load latest data. Using cached data instead.");
-    
-    // Use fallback data
+    showErrorMessage("Unable to load latest data. Using placeholder data.");
     renderTable(FALLBACK_DATA);
-    updateTimestamp("(using cached data)");
+    updateTimestamp("(using placeholder data)");
     hideLoadingMessage();
   }
 }
