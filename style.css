@@ -35,6 +35,14 @@ header {
   padding-left: 10px;
 }
 
+.stats-header {
+  display: contents;
+}
+
+.stats-header .stat {
+  text-align: center;
+}
+
 .standings-body {
   width: 100%;
 }
@@ -58,8 +66,16 @@ header {
   padding-left: 10px;
 }
 
+/* This is the key fix - make team-stats a grid item that spans its content */
+.team-stats {
+  display: contents;
+}
+
 .stat {
   text-align: center;
+}
+
+.stat-value {
   font-weight: bold;
 }
 
