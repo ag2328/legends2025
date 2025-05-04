@@ -1,1 +1,41 @@
-<! -- Placeholder for now -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summer Legends 2025</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Summer Legends 2025 Standings</h1>
+    <p id="last-updated">Last updated: loading...</p>
+  </header>
+
+  <main>
+    <table id="standings">
+      <thead>
+        <tr>
+          <th>Logo</th>
+          <th>Team</th>
+          <th>W</th>
+          <th>L</th>
+          <th>T</th>
+          <th>PTS</th>
+          <th>GF</th>
+          <th>GA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamic rows inserted here -->
+      </tbody>
+    </table>
+  </main>
+
+  <footer>
+    <p><button onclick="fetchData()">Refresh</button></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
