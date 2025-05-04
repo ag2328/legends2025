@@ -40,7 +40,7 @@ header {
   min-width: 300px;
 }
 
-.stats-header span {
+.stats-header .stat {
   width: 40px;
   text-align: center;
 }
@@ -71,7 +71,7 @@ header {
   min-width: 300px;
 }
 
-.stat {
+.team-stats .stat {
   width: 40px;
   text-align: center;
 }
@@ -86,11 +86,14 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .logo-container img {
-  max-width: 100%;
-  max-height: 100%;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  display: block;
 }
 
 .text-logo {
