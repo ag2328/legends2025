@@ -42,12 +42,13 @@ header {
   display: flex;
   justify-content: space-between;
   min-width: 300px;
+  gap: 10px;
 }
 
 .stats-header .stat {
-  width: 40px;
+  flex: 1;
   text-align: center;
-  margin: 0 5px;
+  min-width: 40px;
 }
 
 .standings-body {
@@ -82,17 +83,18 @@ header {
   display: flex;
   justify-content: space-between;
   min-width: 300px;
+  gap: 10px;
 }
 
 .team-stats .stat {
-  width: 40px;
+  flex: 1;
   text-align: center;
-  margin: 0 5px;
+  min-width: 40px;
 }
 
 .stat-value {
   font-weight: bold;
-  display: inline-block;
+  display: block;
   width: 100%;
 }
 
