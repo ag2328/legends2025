@@ -6,6 +6,7 @@
     --text-primary: #ffffff;
     --text-secondary: rgba(255, 255, 255, 0.6);
     --border: rgba(255, 255, 255, 0.08);
+    --logo-blue: #7ec0ee;
 }
 
 * {
@@ -33,20 +34,14 @@ body {
     margin-bottom: 16px;
     width: 60px;
     height: 60px;
-    background-color: var(--accent);
+    background-color: var(--logo-blue);
     border-radius: 14px;
     position: relative;
+    transform: rotate(45deg);
 }
 
 .app-logo::after {
-    content: "L";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 36px;
-    font-weight: 800;
-    color: white;
+    display: none;
 }
 
 .app-title {
