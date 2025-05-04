@@ -330,23 +330,16 @@ function hideErrorMessage() {
   }
 }
 
-// Initialize on DOM load
+// Add event listeners when the DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   // Initial data load
   fetchData();
   
-  // Set up refresh button
-  const refreshButton = document.getElementById("refresh-btn");
-  if (refreshButton) {
-    refreshButton.addEventListener("click", fetchData);
-  }
+  // Add refresh button handler
+  document.getElementById("refresh-btn").addEventListener("click", fetchData);
   
-  // Check for debugging parameter in URL
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has("debug")) {
-    console.log("Debug mode enabled");
-    
-    // Add debug info to the page
+  // Debug mode setup
+  if (window.location.search.includes("debug")) {
     const debugInfo = document.createElement("div");
     debugInfo.id = "debug-info";
     debugInfo.innerHTML = `
