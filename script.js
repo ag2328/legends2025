@@ -149,17 +149,17 @@ function parseCSV(csv) {
       const values = lines[i].split(",").map(v => v.trim());
       
       // Skip empty lines or lines with no team name
-      if (values.length === 0 || (values.length === 1 && !values[0]) || !values[1]) {
+      if (values.length === 0 || (values.length === 1 && !values[0]) || !values[0]) {
         continue;
       }
       
       const obj = {
-        team: values[1] || "Unknown Team", // Team name is in the second column
-        w: parseInt(values[2]) || 0, // Wins
-        l: parseInt(values[3]) || 0, // Losses
-        t: parseInt(values[4]) || 0, // Ties
-        pts: parseInt(values[7]) || 0, // Points
-        gf: parseInt(values[6]) || 0, // Goals Scored
+        team: values[0], // Team name is in the first column
+        w: parseInt(values[1]) || 0, // Wins
+        l: parseInt(values[2]) || 0, // Losses
+        t: parseInt(values[3]) || 0, // Ties
+        pts: parseInt(values[6]) || 0, // Points
+        gf: parseInt(values[5]) || 0, // Goals Scored
         ga: 0 // Goals Against (not in the sheet)
       };
       
@@ -179,77 +179,84 @@ function parseCSV(csv) {
  */
 function renderTable(data) {
   const tbody = document.querySelector("#standings tbody");
+  if (!tbody) {
+    console.error("Table body not found");
+    return;
+  }
+  
   tbody.innerHTML = "";
   
-  // Sort by points (high to low) then by goals for (high to low)
+  if (!data || data.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td colspan='7'>No team data available</td>";
+    tbody.appendChild(tr);
+    return;
+  }
+  
+  // Sort by points then by goals for
   data.sort((a, b) => {
-    // First compare by points
     const pointsDiff = b.pts - a.pts;
-    if (pointsDiff !== 0) return pointsDiff;
-    
-    // If points are equal, break tie with goals for
-    return b.gf - a.gf;
+    return pointsDiff !== 0 ? pointsDiff : b.gf - a.gf;
   });
   
-  // Render each team row
   data.forEach((team, index) => {
     const tr = document.createElement("tr");
-    
-    // Apply alternating row styles
     if (index % 2 === 1) {
       tr.classList.add("alt-row");
     }
     
-    // Get team name and slug for logo
+    // Team name cell with logo
     const teamName = team.team || "Unknown Team";
     const teamSlug = teamName.toLowerCase().replace(/\s+/g, "_");
     
-    // Create logo cell with error handling
-    const logoCell = document.createElement("td");
+    const teamCell = document.createElement("td");
+    teamCell.className = "team-cell";
+    
+    // Create logo container
+    const logoContainer = document.createElement("div");
+    logoContainer.className = "logo-container";
+    
     const logoImg = document.createElement("img");
     logoImg.src = `static/logos/${teamSlug}.png`;
     logoImg.alt = teamName;
     logoImg.width = 30;
     
-    // Handle missing images
     logoImg.onerror = function() {
-      // Try with fallback image
-      this.src = "static/logos/default.png";
-      this.classList.add("error");
-      
-      // If default is also missing, show first letter of team name
-      this.onerror = function() {
-        this.style.display = "none";
-        logoCell.textContent = teamName.charAt(0).toUpperCase();
-        logoCell.classList.add("text-logo");
-      };
+      // Just show the first letter as a fallback
+      this.style.display = "none";
+      const textLogo = document.createElement("div");
+      textLogo.className = "text-logo";
+      textLogo.textContent = teamName.charAt(0).toUpperCase();
+      logoContainer.appendChild(textLogo);
     };
     
-    logoCell.appendChild(logoImg);
-    tr.appendChild(logoCell);
+    logoContainer.appendChild(logoImg);
+    teamCell.appendChild(logoContainer);
     
-    // Add the rest of the cells
-    tr.appendChild(createCell(teamName));
-    tr.appendChild(createCell(team.w));
-    tr.appendChild(createCell(team.l));
-    tr.appendChild(createCell(team.t));
-    tr.appendChild(createCell(team.pts));
-    tr.appendChild(createCell(team.gf));
-    tr.appendChild(createCell(team.ga));
+    // Add team name
+    const teamNameSpan = document.createElement("span");
+    teamNameSpan.className = "team-name";
+    teamNameSpan.textContent = teamName;
+    teamCell.appendChild(teamNameSpan);
+    
+    tr.appendChild(teamCell);
+    
+    // Other cells
+    [
+      team.w || 0,
+      team.l || 0,
+      team.t || 0,
+      team.pts || 0,
+      team.gf || 0,
+      team.ga || 0
+    ].forEach(value => {
+      const td = document.createElement("td");
+      td.textContent = value;
+      tr.appendChild(td);
+    });
     
     tbody.appendChild(tr);
   });
-}
-
-/**
- * Creates a table cell with the given content
- * @param {*} content - Cell content
- * @returns {HTMLElement} TD element
- */
-function createCell(content) {
-  const td = document.createElement("td");
-  td.textContent = content;
-  return td;
 }
 
 /**
