@@ -14,25 +14,23 @@
   </header>
 
   <main>
-    <table id="standings">
-      <thead>
-        <tr>
-          <th>Team</th>
-          <th>W</th>
-          <th>L</th>
-          <th>T</th>
-          <th>PTS</th>
-          <th>GF</th>
-          <th>GA</th>
-        </tr>
-      </thead>
-      <tbody>
+    <div class="standings-container">
+      <div class="standings-header">
+        <div class="team-header">Team</div>
+        <div class="stats-header">
+          <span>W</span>
+          <span>L</span>
+          <span>T</span>
+          <span>PTS</span>
+          <span>GF</span>
+          <span>GA</span>
+        </div>
+      </div>
+      <div id="standings" class="standings-body">
         <!-- Loading placeholder -->
-        <tr>
-          <td colspan="7">Loading standings...</td>
-        </tr>
-      </tbody>
-    </table>
+        <div class="loading-placeholder">Loading standings...</div>
+      </div>
+    </div>
     
     <div id="status-container">
       <!-- Status messages will appear here -->
