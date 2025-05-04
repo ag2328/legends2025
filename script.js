@@ -217,6 +217,10 @@ function renderTable(data) {
     const slug = team.team.toLowerCase().replace(/\s+/g, "_");
     img.src = `static/logos/${slug}.png`;
     img.alt = team.team;
+    img.width = 30;
+    img.height = 30;
+    img.loading = "lazy";
+    
     img.onerror = function() {
       // If logo fails to load, show first letter in a circle
       this.style.display = "none";
