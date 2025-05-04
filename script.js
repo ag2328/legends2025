@@ -178,84 +178,73 @@ function parseCSV(csv) {
  * @param {Array} data - Array of team data objects
  */
 function renderTable(data) {
-  const tbody = document.querySelector("#standings tbody");
-  if (!tbody) {
+  const tableBody = document.querySelector("#standings tbody");
+  if (!tableBody) {
     console.error("Table body not found");
     return;
   }
-  
-  tbody.innerHTML = "";
-  
+
+  // Clear existing rows
+  tableBody.innerHTML = "";
+
   if (!data || data.length === 0) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = "<td colspan='7'>No team data available</td>";
-    tbody.appendChild(tr);
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="7">No data available</td>`;
+    tableBody.appendChild(row);
     return;
   }
-  
-  // Sort by points then by goals for
+
+  // Sort by points and goals for
   data.sort((a, b) => {
-    const pointsDiff = b.pts - a.pts;
-    return pointsDiff !== 0 ? pointsDiff : b.gf - a.gf;
+    if (b.pts !== a.pts) return b.pts - a.pts;
+    return b.gf - a.gf;
   });
-  
-  data.forEach((team, index) => {
-    const tr = document.createElement("tr");
-    if (index % 2 === 1) {
-      tr.classList.add("alt-row");
-    }
+
+  // Create rows for each team
+  data.forEach(team => {
+    const row = document.createElement("tr");
     
-    // Team name cell with logo
-    const teamName = team.team || "Unknown Team";
-    const teamSlug = teamName.toLowerCase().replace(/\s+/g, "_");
-    
+    // Create team cell with logo
     const teamCell = document.createElement("td");
     teamCell.className = "team-cell";
     
-    // Create logo container
     const logoContainer = document.createElement("div");
     logoContainer.className = "logo-container";
     
-    const logoImg = document.createElement("img");
-    logoImg.src = `static/logos/${teamSlug}.png`;
-    logoImg.alt = teamName;
-    logoImg.width = 30;
-    
-    logoImg.onerror = function() {
-      // Just show the first letter as a fallback
+    const img = document.createElement("img");
+    const slug = team.team.toLowerCase().replace(/\s+/g, "_");
+    img.src = `static/logos/${slug}.png`;
+    img.alt = team.team;
+    img.onerror = function() {
+      // If logo fails to load, show first letter in a circle
       this.style.display = "none";
       const textLogo = document.createElement("div");
       textLogo.className = "text-logo";
-      textLogo.textContent = teamName.charAt(0).toUpperCase();
-      logoContainer.appendChild(textLogo);
+      textLogo.textContent = team.team.charAt(0);
+      this.parentNode.appendChild(textLogo);
     };
     
-    logoContainer.appendChild(logoImg);
+    logoContainer.appendChild(img);
     teamCell.appendChild(logoContainer);
     
-    // Add team name
-    const teamNameSpan = document.createElement("span");
-    teamNameSpan.className = "team-name";
-    teamNameSpan.textContent = teamName;
-    teamCell.appendChild(teamNameSpan);
+    const teamName = document.createElement("span");
+    teamName.className = "team-name";
+    teamName.textContent = team.team;
+    teamCell.appendChild(teamName);
     
-    tr.appendChild(teamCell);
+    row.appendChild(teamCell);
     
-    // Other cells
-    [
-      team.w || 0,
-      team.l || 0,
-      team.t || 0,
-      team.pts || 0,
-      team.gf || 0,
-      team.ga || 0
-    ].forEach(value => {
-      const td = document.createElement("td");
-      td.textContent = value;
-      tr.appendChild(td);
-    });
+    // Add other statistics
+    row.innerHTML += `
+      <td>${team.w}</td>
+      <td>${team.l}</td>
+      <td>${team.t}</td>
+      <td>${team.pts}</td>
+      <td>${team.gf}</td>
+      <td>${team.ga}</td>
+    `;
     
-    tbody.appendChild(tr);
+    tableBody.appendChild(row);
   });
 }
 
