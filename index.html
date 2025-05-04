@@ -4,31 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legends In-House Summer 2025</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Legends In-House Summer 2025</h1>
+    <div class="app-header">
+        <div class="app-logo"></div>
+        <h1 class="app-title">Legends Hockey</h1>
+        <p class="app-subtitle">In-House Summer League 2025</p>
+    </div>
     
-    <table>
-        <thead>
-            <tr>
-                <th>Team</th>
-                <th>W</th>
-                <th>L</th>
-                <th>T</th>
-                <th>GP</th>
-                <th>GS</th>
-                <th>PTS</th>
-            </tr>
-        </thead>
-        <tbody id="standings">
-            <tr>
-                <td colspan="7" class="loading">Loading standings data...</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <div id="last-updated">Loading data...</div>
+    <div class="section-header">
+        <h2 class="section-title">Standings</h2>
+        <button class="refresh-button" id="refresh-btn">Refresh</button>
+    </div>
+    
+    <div class="standings-grid" id="standings">
+        <div class="loading">Loading standings data...</div>
+    </div>
+    
+    <div id="last-updated">Last updated: Loading...</div>
 
     <script src="script.js"></script>
 </body>
