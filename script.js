@@ -1,14 +1,13 @@
-// Google Sheets CSV URL
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2z2qeTV7pdgq6l1_B8AHdr6ysBIoTy0v2zE20o54IqoRKX2J8hZw34s0rv2akIKZqMTQHv3BtOdv4/pub?gid=0&single=true&output=csv";
-
-// Fallback data in case the fetch fails
+// Fallback data in case the local file is unavailable
 const FALLBACK_DATA = [
-  { team: "Red Wings", w: 5, l: 2, t: 1, pts: 11, gf: 25, ga: 18 },
-  { team: "Maple Leafs", w: 4, l: 3, t: 1, pts: 9, gf: 22, ga: 20 },
-  { team: "Bruins", w: 3, l: 3, t: 2, pts: 8, gf: 19, ga: 19 },
-  { team: "Canadiens", w: 2, l: 5, t: 1, pts: 5, gf: 15, ga: 24 },
-  { team: "Lightning", w: 1, l: 6, t: 1, pts: 3, gf: 12, ga: 22 }
+  { team: "Red Wings", w: 0, l: 0, t: 0, pts: 0, gf: 0, ga: 0 },
+  { team: "Maple Leafs", w: 0, l: 0, t: 0, pts: 0, gf: 0, ga: 0 },
+  { team: "Bruins", w: 0, l: 0, t: 0, pts: 0, gf: 0, ga: 0 },
+  { team: "Canadiens", w: 0, l: 0, t: 0, pts: 0, gf: 0, ga: 0 }
 ];
+
+// Local CSV file path
+const DATA_FILE = "data/standings.csv";
 
 // Column mapping
 const COLUMN_MAPPING = {
@@ -59,14 +58,14 @@ const COLUMN_MAPPING = {
 };
 
 /**
- * Fetches standings data from Google Sheets and renders the table
+ * Fetches standings data and renders the table
  */
 async function fetchData() {
   showLoadingMessage();
   
   try {
-    // Try to fetch from Google Sheets
-    const response = await fetch(SHEET_URL);
+    // Try to fetch from local file
+    const response = await fetch(DATA_FILE);
     
     if (!response.ok) {
       throw new Error(`HTTP error: ${response.status}`);
@@ -80,6 +79,10 @@ async function fetchData() {
     
     const data = parseCSV(csv);
     
+    if (!data || data.length === 0) {
+      throw new Error("No data parsed from CSV");
+    }
+    
     // Check if all values are 0 (season hasn't started)
     const isSeasonStarted = data.some(team => 
       team.w > 0 || team.l > 0 || team.t > 0 || team.pts > 0 || team.gf > 0
@@ -87,7 +90,7 @@ async function fetchData() {
     
     if (!isSeasonStarted) {
       showErrorMessage("Season starts soon! Using placeholder data until games begin.");
-      renderTable(FALLBACK_DATA);
+      renderTable(data); // Use the actual team names from the CSV
       updateTimestamp("(season starts soon)");
     } else {
       renderTable(data);
@@ -98,7 +101,7 @@ async function fetchData() {
     hideErrorMessage();
   } catch (err) {
     console.error("Error loading standings:", err);
-    showErrorMessage("Unable to load latest data. Using placeholder data.");
+    showErrorMessage("Unable to load data file. Using placeholder data.");
     renderTable(FALLBACK_DATA);
     updateTimestamp("(using placeholder data)");
     hideLoadingMessage();
@@ -110,7 +113,7 @@ async function fetchData() {
  * @returns {Promise<Array>} Parsed data array
  */
 async function fetchAndParseCSV() {
-  const response = await fetch(SHEET_URL);
+  const response = await fetch(DATA_FILE);
   
   if (!response.ok) {
     throw new Error(`HTTP error: ${response.status}`);
@@ -335,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
     debugInfo.id = "debug-info";
     debugInfo.innerHTML = `
       <h3>Debug Info</h3>
-      <p>Sheet URL: ${SHEET_URL}</p>
+      <p>Sheet URL: ${DATA_FILE}</p>
       <button id="debug-fallback">Use Fallback Data</button>
       <button id="debug-test-headers">Test Header Mapping</button>
     `;
