@@ -20,39 +20,38 @@ header {
   overflow: hidden;
 }
 
+/* Header row styling */
 .standings-header {
-  display: grid;
-  grid-template-columns: 2fr repeat(6, 1fr);
-  padding: 10px;
+  display: flex;
   background-color: #f0f0f0;
   font-weight: bold;
   border-bottom: 1px solid #ddd;
-  text-align: center;
 }
 
 .team-header {
+  flex: 2;
+  min-width: 200px;
+  padding: 10px;
   text-align: left;
-  padding-left: 10px;
 }
 
 .stats-header {
-  display: contents;
+  flex: 1;
+  display: flex;
+  padding: 10px 0;
+  min-width: 300px;
 }
 
 .stats-header .stat {
+  flex: 1;
   text-align: center;
+  min-width: 40px;
 }
 
-.standings-body {
-  width: 100%;
-}
-
+/* Team row styling */
 .team-row {
-  display: grid;
-  grid-template-columns: 2fr repeat(6, 1fr);
-  padding: 10px;
+  display: flex;
   border-bottom: 1px solid #eee;
-  align-items: center;
 }
 
 .alt-row {
@@ -60,25 +59,32 @@ header {
 }
 
 .team-cell {
+  flex: 2;
+  min-width: 200px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-left: 10px;
+  padding: 10px;
 }
 
-/* This is the key fix - make team-stats a grid item that spans its content */
 .team-stats {
-  display: contents;
+  flex: 1;
+  display: flex;
+  padding: 10px 0;
+  min-width: 300px;
 }
 
-.stat {
+.team-stats .stat {
+  flex: 1;
   text-align: center;
+  min-width: 40px;
 }
 
 .stat-value {
   font-weight: bold;
 }
 
+/* Logo styling */
 .logo-container {
   width: 30px;
   height: 30px;
