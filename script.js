@@ -4,7 +4,6 @@ const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2z2qeTV7pdg
 // DOM Elements
 const standingsContainer = document.getElementById('standings');
 const lastUpdated = document.getElementById('last-updated');
-const refreshButton = document.getElementById('refresh-btn');
 
 // Function to fetch data from Google Sheets
 async function fetchLeaderboardData() {
@@ -113,7 +112,7 @@ function renderLeaderboard(leaderboardData) {
                 </div>
                 
                 <div class="gf-container">
-                    <div class="stat-label">GF</div>
+                    <div class="stat-label">GS</div>
                     <div class="stat-value">${team['Goals Scored']}</div>
                 </div>
                 
@@ -131,7 +130,13 @@ function renderLeaderboard(leaderboardData) {
 // Update last updated timestamp
 function updateLastUpdated() {
     const now = new Date();
-    lastUpdated.textContent = `Last updated: ${now.toLocaleString()}`;
+    lastUpdated.textContent = `Last updated: ${now.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    })}`;
 }
 
 // Display error message
@@ -159,9 +164,6 @@ async function fetchAndDisplayData() {
         displayError(error.message);
     }
 }
-
-// Add refresh button event listener
-refreshButton.addEventListener('click', fetchAndDisplayData);
 
 // Initial load
 fetchAndDisplayData();
