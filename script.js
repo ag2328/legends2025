@@ -243,7 +243,7 @@ function renderTable(data) {
     
     const teamName = document.createElement("span");
     teamName.className = "team-name";
-    teamName.textContent = team.team; // Only show team name once
+    teamName.textContent = team.team;
     teamCell.appendChild(teamName);
     
     row.appendChild(teamCell);
@@ -265,7 +265,10 @@ function renderTable(data) {
     stats.forEach(stat => {
       const statDiv = document.createElement("div");
       statDiv.className = "stat";
-      statDiv.innerHTML = `<span class="stat-value">${stat.value}</span>`;
+      const statValue = document.createElement("span");
+      statValue.className = "stat-value";
+      statValue.textContent = stat.value;
+      statDiv.appendChild(statValue);
       statsContainer.appendChild(statDiv);
     });
     
