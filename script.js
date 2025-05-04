@@ -243,7 +243,7 @@ function renderTable(data) {
     
     const teamName = document.createElement("span");
     teamName.className = "team-name";
-    teamName.textContent = team.team;
+    teamName.textContent = team.team; // Only show team name once
     teamCell.appendChild(teamName);
     
     row.appendChild(teamCell);
@@ -252,12 +252,21 @@ function renderTable(data) {
     const statsContainer = document.createElement("div");
     statsContainer.className = "team-stats";
     
-    // Add stats
-    const stats = [team.w, team.l, team.t, team.pts, team.gf, team.ga];
+    // Add stats with proper spacing
+    const stats = [
+      { value: team.w, label: 'W' },
+      { value: team.l, label: 'L' },
+      { value: team.t, label: 'T' },
+      { value: team.pts, label: 'PTS' },
+      { value: team.gf, label: 'GF' },
+      { value: team.ga || 0, label: 'GA' } // Use 0 as fallback for GA
+    ];
+    
     stats.forEach(stat => {
-      const statSpan = document.createElement("span");
-      statSpan.textContent = stat;
-      statsContainer.appendChild(statSpan);
+      const statDiv = document.createElement("div");
+      statDiv.className = "stat";
+      statDiv.innerHTML = `<span class="stat-value">${stat.value}</span>`;
+      statsContainer.appendChild(statDiv);
     });
     
     row.appendChild(statsContainer);
