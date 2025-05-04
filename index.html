@@ -3,311 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard App</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        
-        .refresh-info {
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-        }
-        
-        th {
-            background-color: #3498db;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-        
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        
-        tr:hover {
-            background-color: #e3f2fd;
-        }
-        
-        .rank {
-            font-weight: bold;
-            text-align: center;
-        }
-        
-        .rank-1 {
-            color: gold;
-        }
-        
-        .rank-2 {
-            color: silver;
-        }
-        
-        .rank-3 {
-            color: #cd7f32; /* bronze */
-        }
-        
-        .score {
-            font-weight: bold;
-            text-align: right;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 20px;
-            font-style: italic;
-            color: #7f8c8d;
-        }
-        
-        footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #7f8c8d;
-        }
-        
-        @media (max-width: 600px) {
-            th, td {
-                padding: 8px 10px;
-            }
-            
-            table {
-                font-size: 0.9rem;
-            }
-        }
-    </style>
+    <title>Legends In-House Summer 2025</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Leaderboard</h1>
-    <div class="refresh-info">Last updated: <span id="last-updated">Loading...</span></div>
+    <h1>Legends In-House Summer 2025</h1>
     
-    <div id="leaderboard-container">
-        <div class="loading">Loading leaderboard data...</div>
-    </div>
-    
-    <footer>
-        &copy; 2025 | Data updated weekly
-    </footer>
+    <table>
+        <thead>
+            <tr>
+                <th>Team</th>
+                <th>W</th>
+                <th>L</th>
+                <th>T</th>
+                <th>GP</th>
+                <th>GS</th>
+                <th>PTS</th>
+            </tr>
+        </thead>
+        <tbody id="standings">
+            <tr>
+                <td colspan="7" class="loading">Loading standings data...</td>
+            </tr>
+        </tbody>
+    </table>
 
-    <script>
-        // Replace this with your actual Google Sheet ID
-        // You already have this from your public Google Sheet
-        const SHEET_ID = '2PACX-1vS2z2qeTV7pdgq6l1_B8AHdr6ysBIoTy0v2zE20o54IqoRKX2J8hZw34s0rv2akIKZqMTQHv3BtOdv4';
-        
-        // The sheet name - typically 'Sheet1' for the first sheet
-        // Change this if your sheet has a different name
-        const SHEET_NAME = 'Overall';
-        
-        // Function to fetch data from Google Sheets
-        async function fetchLeaderboardData() {
-            try {
-                // Create the URL for the Google Sheets API
-                // Using gviz/tq?tqx=out:csv to get CSV format which is more reliable
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${SHEET_NAME}`;
-                
-                console.log('Fetching data from:', url);
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
-                }
-                
-                const data = await response.text();
-                console.log('Data received, length:', data.length);
-                
-                // Check if we got valid data
-                if (!data || data.includes('<!DOCTYPE html>') || data.includes('Access denied')) {
-                    throw new Error('Invalid data received. Check that your Google Sheet is public.');
-                }
-                
-                return parseCSV(data);
-            } catch (error) {
-                console.error('Error fetching leaderboard data:', error);
-                document.getElementById('leaderboard-container').innerHTML = 
-                    `<div class="loading">Error loading data: ${error.message}<br><br>
-                    Make sure your Google Sheet is public (Anyone with the link can view).</div>`;
-                return null;
-            }
-        }
-        
-        // More robust CSV parser
-        function parseCSV(csvText) {
-            // Split the CSV text into lines, handling both \r\n and \n
-            const lines = csvText.split(/\r?\n/);
-            
-            // Process headers (first line)
-            if (!lines[0]) {
-                throw new Error('CSV has no headers');
-            }
-            
-            // Parse the header line, handling quoted values properly
-            const headers = parseCSVLine(lines[0]);
-            
-            // Process data rows
-            const result = [];
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue; // Skip empty lines
-                
-                const values = parseCSVLine(lines[i]);
-                
-                // Create an object for this row
-                const entry = {};
-                headers.forEach((header, index) => {
-                    // Store the value, defaulting to empty string if undefined
-                    entry[header] = (values[index] !== undefined) ? values[index] : '';
-                    
-                    // Convert numeric strings to numbers
-                    if (!isNaN(entry[header]) && entry[header] !== '') {
-                        // Check if it's an integer or has decimal places
-                        if (entry[header].indexOf('.') === -1) {
-                            entry[header] = parseInt(entry[header], 10);
-                        } else {
-                            entry[header] = parseFloat(entry[header]);
-                        }
-                    }
-                });
-                
-                result.push(entry);
-            }
-            
-            return { headers, data: result };
-        }
-        
-        // Helper function to parse a single CSV line, handling quoted values correctly
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    // If we have two quotes in a row, it's an escaped quote
-                    if (i + 1 < line.length && line[i + 1] === '"') {
-                        current += '"';
-                        i++; // Skip the next quote
-                    } else {
-                        // Toggle the inQuotes flag
-                        inQuotes = !inQuotes;
-                    }
-                } else if (char === ',' && !inQuotes) {
-                    // End of field, add to result
-                    result.push(current.trim());
-                    current = '';
-                } else {
-                    // Regular character, add to current
-                    current += char;
-                }
-            }
-            
-            // Add the last field
-            result.push(current.trim());
-            
-            return result;
-        }
-        
-        // Function to render the leaderboard
-        function renderLeaderboard(leaderboardData) {
-            const container = document.getElementById('leaderboard-container');
-            
-            if (!leaderboardData || !leaderboardData.data || leaderboardData.data.length === 0) {
-                container.innerHTML = '<div class="loading">No data available or error loading data.</div>';
-                return;
-            }
-            
-            // Create table
-            const table = document.createElement('table');
-            
-            // Create header row
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            
-            leaderboardData.headers.forEach(header => {
-                const th = document.createElement('th');
-                th.textContent = header;
-                headerRow.appendChild(th);
-            });
-            
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-            
-            // Create table body
-            const tbody = document.createElement('tbody');
-            
-            leaderboardData.data.forEach((entry, index) => {
-                const row = document.createElement('tr');
-                
-                leaderboardData.headers.forEach(header => {
-                    const cell = document.createElement('td');
-                    cell.textContent = entry[header];
-                    
-                    // Add classes for special formatting
-                    if (header.toLowerCase() === 'rank') {
-                        cell.classList.add('rank');
-                        if (entry[header] === '1') cell.classList.add('rank-1');
-                        if (entry[header] === '2') cell.classList.add('rank-2');
-                        if (entry[header] === '3') cell.classList.add('rank-3');
-                    }
-                    
-                    if (header.toLowerCase().includes('score') || 
-                        header.toLowerCase().includes('points')) {
-                        cell.classList.add('score');
-                    }
-                    
-                    row.appendChild(cell);
-                });
-                
-                tbody.appendChild(row);
-            });
-            
-            table.appendChild(tbody);
-            
-            // Replace loading message with table
-            container.innerHTML = '';
-            container.appendChild(table);
-            
-            // Update last updated time
-            const now = new Date();
-            document.getElementById('last-updated').textContent = now.toLocaleString();
-        }
-        
-        // Initialize the leaderboard
-        async function initLeaderboard() {
-            const data = await fetchLeaderboardData();
-            renderLeaderboard(data);
-        }
-        
-        // Load the leaderboard when the page loads
-        window.addEventListener('DOMContentLoaded', initLeaderboard);
-    </script>
+    <div id="last-updated">Loading data...</div>
+
+    <script src="script.js"></script>
 </body>
 </html>
