@@ -178,19 +178,20 @@ function parseCSV(csv) {
  * @param {Array} data - Array of team data objects
  */
 function renderTable(data) {
-  const tableBody = document.querySelector("#standings tbody");
-  if (!tableBody) {
-    console.error("Table body not found");
+  const standingsBody = document.querySelector("#standings");
+  if (!standingsBody) {
+    console.error("Standings body not found");
     return;
   }
 
-  // Clear existing rows
-  tableBody.innerHTML = "";
+  // Clear existing content
+  standingsBody.innerHTML = "";
 
   if (!data || data.length === 0) {
-    const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="7">No data available</td>`;
-    tableBody.appendChild(row);
+    const placeholder = document.createElement("div");
+    placeholder.className = "loading-placeholder";
+    placeholder.textContent = "No data available";
+    standingsBody.appendChild(placeholder);
     return;
   }
 
@@ -201,11 +202,12 @@ function renderTable(data) {
   });
 
   // Create rows for each team
-  data.forEach(team => {
-    const row = document.createElement("tr");
+  data.forEach((team, index) => {
+    const row = document.createElement("div");
+    row.className = `team-row ${index % 2 === 1 ? 'alt-row' : ''}`;
     
     // Create team cell with logo
-    const teamCell = document.createElement("td");
+    const teamCell = document.createElement("div");
     teamCell.className = "team-cell";
     
     const logoContainer = document.createElement("div");
@@ -234,17 +236,20 @@ function renderTable(data) {
     
     row.appendChild(teamCell);
     
-    // Add other statistics
-    row.innerHTML += `
-      <td>${team.w}</td>
-      <td>${team.l}</td>
-      <td>${team.t}</td>
-      <td>${team.pts}</td>
-      <td>${team.gf}</td>
-      <td>${team.ga}</td>
-    `;
+    // Create stats container
+    const statsContainer = document.createElement("div");
+    statsContainer.className = "team-stats";
     
-    tableBody.appendChild(row);
+    // Add stats
+    const stats = [team.w, team.l, team.t, team.pts, team.gf, team.ga];
+    stats.forEach(stat => {
+      const statSpan = document.createElement("span");
+      statSpan.textContent = stat;
+      statsContainer.appendChild(statSpan);
+    });
+    
+    row.appendChild(statsContainer);
+    standingsBody.appendChild(row);
   });
 }
 
