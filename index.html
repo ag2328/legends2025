@@ -1,12 +1,109 @@
+// index.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Summer Legends 2025</title>
-  <link rel="stylesheet" href="style.css" />
-  <!-- Add fallback-data.js before main script -->
-  <script src="fallback-data.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f7f9fc;
+      color: #333;
+      text-align: center;
+    }
+    
+    header {
+      background: #004080;
+      color: white;
+      padding: 1rem;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    main {
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    th, td {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    
+    img {
+      max-height: 30px;
+    }
+    
+    .text-logo {
+      font-weight: bold;
+      font-size: 18px;
+      background-color: #f0f0f0;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+    
+    .alt-row {
+      background-color: #f5f9ff;
+    }
+    
+    footer {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      background: #004080;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background: #00569b;
+    }
+    
+    .loading {
+      display: inline-block;
+      margin-top: 10px;
+      font-style: italic;
+      color: #666;
+    }
+    
+    .error-message {
+      color: #d9534f;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    
+    #status-container {
+      min-height: 30px;
+      margin: 15px 0;
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -31,4 +128,284 @@
       <tbody>
         <!-- Loading placeholder -->
         <tr>
-          <td colspan="8">Loading standings...</t
+          <td colspan="8">Loading standings...</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div id="status-container">
+      <!-- Status messages will appear here -->
+    </div>
+  </main>
+
+  <footer>
+    <p><button id="refresh-btn">Refresh Data</button></p>
+    <p class="footer-info">Summer Legends 2025 In-House Hockey League</p>
+  </footer>
+
+  <script>
+    // Fallback data in case Google Sheets is unavailable
+    const FALLBACK_DATA = [
+      { team: "Red Wings", w: 5, l: 2, t: 1, pts: 11, gf: 25, ga: 18 },
+      { team: "Maple Leafs", w: 4, l: 3, t: 1, pts: 9, gf: 22, ga: 20 },
+      { team: "Bruins", w: 3, l: 3, t: 2, pts: 8, gf: 19, ga: 19 },
+      { team: "Canadiens", w: 2, l: 5, t: 1, pts: 5, gf: 15, ga: 24 },
+      { team: "Lightning", w: 1, l: 6, t: 1, pts: 3, gf: 12, ga: 22 }
+    ];
+
+    // Google Sheets CSV URL
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2z2qeTV7pdgq6l1_B8AHdr6ysBIoTy0v2zE20o54IqoRKX2J8hZw34s0rv2akIKZqMTQHv3BtOdv4/pub?gid=0&single=true&output=csv";
+
+    // Column mapping
+    const COLUMN_MAPPING = {
+      'team': 'team', 'name': 'team', 'Team': 'team', 'Name': 'team',
+      'w': 'w', 'win': 'w', 'wins': 'w', 'W': 'w', 'Wins': 'w',
+      'l': 'l', 'loss': 'l', 'losses': 'l', 'L': 'l', 'Losses': 'l',
+      't': 't', 'tie': 't', 'ties': 't', 'T': 't', 'Ties': 't',
+      'pts': 'pts', 'points': 'pts', 'PTS': 'pts', 'Points': 'pts',
+      'gf': 'gf', 'goals_for': 'gf', 'GF': 'gf', 'GoalsFor': 'gf',
+      'ga': 'ga', 'goals_against': 'ga', 'GA': 'ga', 'GoalsAgainst': 'ga'
+    };
+
+    /**
+     * Fetches standings data and renders the table
+     */
+    async function fetchData() {
+      showLoadingMessage();
+      
+      try {
+        // Try to fetch from Google Sheets
+        const response = await fetch(SHEET_URL);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        
+        const csv = await response.text();
+        
+        if (!csv || csv.trim() === "") {
+          throw new Error("Empty data received");
+        }
+        
+        const data = parseCSV(csv);
+        
+        if (!data || data.length === 0) {
+          throw new Error("No data parsed from CSV");
+        }
+        
+        renderTable(data);
+        updateTimestamp();
+        hideLoadingMessage();
+        hideErrorMessage();
+      } catch (err) {
+        console.error("Error loading standings:", err);
+        showErrorMessage("Unable to load latest data. Using fallback data.");
+        renderTable(FALLBACK_DATA);
+        updateTimestamp("(using fallback data)");
+        hideLoadingMessage();
+      }
+    }
+
+    /**
+     * Parses CSV data into array of objects
+     */
+    function parseCSV(csv) {
+      try {
+        const lines = csv.trim().split("\n");
+        if (lines.length < 2) {
+          throw new Error("Not enough data rows");
+        }
+        
+        const headers = lines[0].split(",").map(h => h.trim());
+        const mappedHeaders = headers.map(h => COLUMN_MAPPING[h] || h);
+        
+        const result = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(",").map(v => v.trim());
+          
+          // Skip empty lines
+          if (values.length === 0 || (values.length === 1 && !values[0])) {
+            continue;
+          }
+          
+          const obj = {
+            team: "Unknown Team",
+            w: 0, l: 0, t: 0, pts: 0, gf: 0, ga: 0
+          };
+          
+          mappedHeaders.forEach((header, index) => {
+            if (index < values.length) {
+              if (header === 'team') {
+                obj[header] = values[index] || "Unknown Team";
+              } else if (['w', 'l', 't', 'pts', 'gf', 'ga'].includes(header)) {
+                obj[header] = parseInt(values[index]) || 0;
+              }
+            }
+          });
+          
+          result.push(obj);
+        }
+        
+        return result;
+      } catch (err) {
+        console.error("Error parsing CSV:", err);
+        return [];
+      }
+    }
+
+    /**
+     * Renders the standings table
+     */
+    function renderTable(data) {
+      const tbody = document.querySelector("#standings tbody");
+      if (!tbody) {
+        console.error("Table body not found");
+        return;
+      }
+      
+      tbody.innerHTML = "";
+      
+      if (!data || data.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = "<td colspan='8'>No team data available</td>";
+        tbody.appendChild(tr);
+        return;
+      }
+      
+      // Sort by points then by goals for
+      data.sort((a, b) => {
+        const pointsDiff = b.pts - a.pts;
+        return pointsDiff !== 0 ? pointsDiff : b.gf - a.gf;
+      });
+      
+      data.forEach((team, index) => {
+        const tr = document.createElement("tr");
+        if (index % 2 === 1) {
+          tr.classList.add("alt-row");
+        }
+        
+        // Logo cell
+        const teamName = team.team || "Unknown Team";
+        const teamSlug = teamName.toLowerCase().replace(/\s+/g, "_");
+        
+        const logoCell = document.createElement("td");
+        const logoImg = document.createElement("img");
+        logoImg.src = `static/logos/${teamSlug}.png`;
+        logoImg.alt = teamName;
+        logoImg.width = 30;
+        
+        logoImg.onerror = function() {
+          // Just show the first letter as a fallback
+          this.style.display = "none";
+          logoCell.textContent = teamName.charAt(0).toUpperCase();
+          logoCell.classList.add("text-logo");
+        };
+        
+        logoCell.appendChild(logoImg);
+        tr.appendChild(logoCell);
+        
+        // Other cells
+        [
+          teamName,
+          team.w || 0,
+          team.l || 0,
+          team.t || 0,
+          team.pts || 0,
+          team.gf || 0,
+          team.ga || 0
+        ].forEach(value => {
+          const td = document.createElement("td");
+          td.textContent = value;
+          tr.appendChild(td);
+        });
+        
+        tbody.appendChild(tr);
+      });
+    }
+
+    /**
+     * Updates the timestamp display
+     */
+    function updateTimestamp(suffix = "") {
+      const now = new Date();
+      const display = now.toLocaleString();
+      const element = document.getElementById("last-updated");
+      if (element) {
+        element.textContent = `Last updated: ${display} ${suffix}`;
+      }
+    }
+
+    /**
+     * Shows a loading message
+     */
+    function showLoadingMessage() {
+      hideLoadingMessage();
+      
+      const loadingElement = document.createElement("p");
+      loadingElement.className = "loading";
+      loadingElement.id = "loading-message";
+      loadingElement.textContent = "Loading standings data...";
+      
+      const container = document.getElementById("status-container");
+      if (container) {
+        container.appendChild(loadingElement);
+      }
+    }
+
+    /**
+     * Hides the loading message
+     */
+    function hideLoadingMessage() {
+      const loadingElement = document.getElementById("loading-message");
+      if (loadingElement) {
+        loadingElement.remove();
+      }
+    }
+
+    /**
+     * Shows an error message
+     */
+    function showErrorMessage(message) {
+      hideErrorMessage();
+      
+      const errorElement = document.createElement("p");
+      errorElement.className = "error-message";
+      errorElement.id = "error-message";
+      errorElement.textContent = message;
+      
+      const container = document.getElementById("status-container");
+      if (container) {
+        container.appendChild(errorElement);
+      }
+    }
+
+    /**
+     * Hides the error message
+     */
+    function hideErrorMessage() {
+      const errorElement = document.getElementById("error-message");
+      if (errorElement) {
+        errorElement.remove();
+      }
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("DOM loaded, initializing app...");
+      
+      // Initial data load
+      fetchData();
+      
+      // Set up refresh button
+      const refreshButton = document.getElementById("refresh-btn");
+      if (refreshButton) {
+        refreshButton.addEventListener("click", fetchData);
+        console.log("Refresh button event listener attached");
+      } else {
+        console.error("Refresh button not found");
+      }
+    });
+  </script>
+</body>
+</html>
