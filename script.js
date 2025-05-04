@@ -19,6 +19,7 @@ const COLUMN_MAPPING = {
   'team name': 'team',
   'teamname': 'team',
   'Team': 'team',
+  'Team': 'team',
   // Win variations
   'w': 'w',
   'win': 'w',
