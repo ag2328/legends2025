@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Standings Test</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .test-section {
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Standings Test Page</h1>
+  
+  <div class="test-section">
+    <h2>1. Raw CSV Data</h2>
+    <button onclick="testCSV()">Test CSV Loading</button>
+    <pre id="csv-output">Click button to test...</pre>
+  </div>
+
+  <div class="test-section">
+    <h2>2. Parsed Data</h2>
+    <button onclick="testParsing()">Test Data Parsing</button>
+    <pre id="parsed-output">Click button to test...</pre>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Team Logo Test</h2>
+    <button onclick="testLogos()">Test Logo Paths</button>
+    <pre id="logo-output">Click button to test...</pre>
+  </div>
+
+  <script>
+    const DATA_FILE = "data/standings.csv";
+
+    async function testCSV() {
+      try {
+        const response = await fetch(DATA_FILE);
+        const csv = await response.text();
+        document.getElementById('csv-output').textContent = csv;
+        console.log('CSV Data:', csv);
+      } catch (err) {
+        document.getElementById('csv-output').textContent = 'Error: ' + err.message;
+        console.error('CSV Error:', err);
+      }
+    }
+
+    async function testParsing() {
+      try {
+        const response = await fetch(DATA_FILE);
+        const csv = await response.text();
+        const data = parseCSV(csv);
+        document.getElementById('parsed-output').textContent = JSON.stringify(data, null, 2);
+        console.log('Parsed Data:', data);
+      } catch (err) {
+        document.getElementById('parsed-output').textContent = 'Error: ' + err.message;
+        console.error('Parsing Error:', err);
+      }
+    }
+
+    function testLogos() {
+      const teams = ['Bruins', 'Canadiens', 'Maple Leafs', 'Red Wings'];
+      const output = teams.map(team => {
+        const slug = team.toLowerCase().replace(/\s+/g, "_");
+        return `${team}: static/logos/${slug}.png`;
+      }).join('\n');
+      document.getElementById('logo-output').textContent = output;
+      console.log('Logo Paths:', output);
+    }
+
+    function parseCSV(csv) {
+      try {
+        const lines = csv.trim().split("\n");
+        if (lines.length < 2) {
+          throw new Error("Not enough data rows");
+        }
+        
+        const headers = lines[0].split(",").map(h => h.trim());
+        const mappedHeaders = headers.map(h => COLUMN_MAPPING[h] || h);
+        
+        const result = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(",").map(v => v.trim());
+          
+          // Skip empty lines or lines with no team name
+          if (values.length === 0 || (values.length === 1 && !values[0]) || !values[0]) {
+            continue;
+          }
+          
+          const obj = {
+            team: values[0], // Team name is in the first column
+            w: parseInt(values[1]) || 0, // Wins
+            l: parseInt(values[2]) || 0, // Losses
+            t: parseInt(values[3]) || 0, // Ties
+            pts: parseInt(values[6]) || 0, // Points
+            gf: parseInt(values[5]) || 0, // Goals Scored
+            ga: 0 // Goals Against (not in the sheet)
+          };
+          
+          result.push(obj);
+        }
+        
+        return result;
+      } catch (err) {
+        console.error("Error parsing CSV:", err);
+        return [];
+      }
+    }
+
+    const COLUMN_MAPPING = {
+      '': 'team',
+      'team': 'team',
+      'name': 'team',
+      'Team': 'team',
+      'Name': 'team',
+      'w': 'w',
+      'win': 'w',
+      'wins': 'w',
+      'W': 'w',
+      'Wins': 'w',
+      'l': 'l',
+      'loss': 'l',
+      'losses': 'l',
+      'L': 'l',
+      'Losses': 'l',
+      't': 't',
+      'tie': 't',
+      'ties': 't',
+      'T': 't',
+      'Ties': 't',
+      'pts': 'pts',
+      'points': 'pts',
+      'PTS': 'pts',
+      'Points': 'pts',
+      'gf': 'gf',
+      'goals_for': 'gf',
+      'goalsfor': 'gf',
+      'goals for': 'gf',
+      'GF': 'gf',
+      'GoalsFor': 'gf',
+      'Goals Scored': 'gf',
+      'ga': 'ga',
+      'goals_against': 'ga',
+      'goalsagainst': 'ga',
+      'goals against': 'ga',
+      'GA': 'ga',
+      'GoalsAgainst': 'ga'
+    };
+  </script>
+</body>
+</html> 
