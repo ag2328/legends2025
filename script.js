@@ -226,7 +226,19 @@ function renderTable(data) {
       this.parentNode.appendChild(textLogo);
     };
     
-    logoContainer.appendChild(img);
+    // Preload the image to handle errors before adding to DOM
+    const preloadImg = new Image();
+    preloadImg.onload = function() {
+      logoContainer.appendChild(img);
+    };
+    preloadImg.onerror = function() {
+      const textLogo = document.createElement("div");
+      textLogo.className = "text-logo";
+      textLogo.textContent = team.team.charAt(0);
+      logoContainer.appendChild(textLogo);
+    };
+    preloadImg.src = img.src;
+    
     teamCell.appendChild(logoContainer);
     
     const teamName = document.createElement("span");
