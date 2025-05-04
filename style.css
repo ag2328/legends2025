@@ -18,6 +18,8 @@ header {
   border: 1px solid #ddd;
   border-radius: 5px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .standings-header {
@@ -27,10 +29,12 @@ header {
   background-color: #f0f0f0;
   font-weight: bold;
   border-bottom: 1px solid #ddd;
+  width: 100%;
 }
 
 .team-header {
   flex: 2;
+  min-width: 200px;
 }
 
 .stats-header {
@@ -46,12 +50,19 @@ header {
   margin: 0 5px;
 }
 
+.standings-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .team-row {
   display: flex;
   justify-content: space-between;
   padding: 10px;
   border-bottom: 1px solid #eee;
   align-items: center;
+  width: 100%;
 }
 
 .alt-row {
@@ -63,6 +74,7 @@ header {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 200px;
 }
 
 .team-stats {
