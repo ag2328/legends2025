@@ -100,8 +100,19 @@ main {
   height: 24px;
   min-width: 24px;
   min-height: 24px;
+  max-width: 24px;
+  max-height: 24px;
   overflow: hidden;
   flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.logo-container img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .team-name {
@@ -109,6 +120,7 @@ main {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-left: 8px;
 }
 
 .text-logo {
@@ -122,14 +134,6 @@ main {
   font-weight: bold;
   font-size: 12px;
   flex-shrink: 0;
-}
-
-img {
-  max-width: 24px;
-  max-height: 24px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
 }
 
 .loading-placeholder {
@@ -177,4 +181,36 @@ button:hover {
 #status-container {
   min-height: 30px;
   margin: 15px 0;
-} 
+}
+
+/* Media queries for better mobile responsiveness */
+@media (max-width: 480px) {
+  .standings-container {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .team-cell {
+    padding-left: 0.5rem;
+  }
+  
+  .team-stats span {
+    width: 1.5rem;
+  }
+  
+  .stats-header span {
+    width: 1.5rem;
+  }
+  
+  .team-header {
+    padding-left: 0.5rem;
+  }
+  
+  h1 {
+    font-size: 1.3rem;
+  }
+  
+  main {
+    padding: 0.5rem;
+  }
+}
