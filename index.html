@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Summer Legends 2025</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon">
 </head>
 <body>
   <header>
@@ -28,12 +29,19 @@
       </thead>
       <tbody>
         <!-- Dynamic rows inserted here -->
+        <tr>
+          <td colspan="8">Loading standings...</td>
+        </tr>
       </tbody>
     </table>
+    <div id="status-container">
+      <!-- Loading and error messages will be inserted here -->
+    </div>
   </main>
 
   <footer>
-    <p><button onclick="fetchData()">Refresh</button></p>
+    <p><button id="refresh-btn">Refresh Data</button></p>
+    <p class="footer-info">Summer Legends 2025 In-House Hockey League</p>
   </footer>
 
   <script src="script.js"></script>
