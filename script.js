@@ -10,16 +10,14 @@ const FALLBACK_DATA = [
   { team: "Lightning", w: 1, l: 6, t: 1, pts: 3, gf: 12, ga: 22 }
 ];
 
-// Column mapping - maps different possible header names to our standard fields
+// Column mapping
 const COLUMN_MAPPING = {
   // Team name variations
+  '': 'team',
   'team': 'team',
   'name': 'team',
-  'team_name': 'team',
-  'team name': 'team',
-  'teamname': 'team',
   'Team': 'team',
-  'Team': 'team',
+  'Name': 'team',
   // Win variations
   'w': 'w',
   'win': 'w',
@@ -43,8 +41,6 @@ const COLUMN_MAPPING = {
   'points': 'pts',
   'PTS': 'pts',
   'Points': 'pts',
-  'p': 'pts',
-  'P': 'pts',
   // Goals for variations
   'gf': 'gf',
   'goals_for': 'gf',
@@ -52,6 +48,7 @@ const COLUMN_MAPPING = {
   'goals for': 'gf',
   'GF': 'gf',
   'GoalsFor': 'gf',
+  'Goals Scored': 'gf',
   // Goals against variations
   'ga': 'ga',
   'goals_against': 'ga',
@@ -119,79 +116,43 @@ async function fetchAndParseCSV() {
  * @returns {Array} Array of objects with team data
  */
 function parseCSV(csv) {
-  // Split into rows and handle quoted values properly
-  const rows = [];
-  const lines = csv.trim().split("\n");
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
-    
-    // Split by comma but respect quotes
-    let inQuote = false;
-    let currentValue = "";
-    const values = [];
-    
-    for (let j = 0; j < line.length; j++) {
-      const char = line[j];
-      
-      if (char === '"' && (j === 0 || line[j - 1] !== '\\')) {
-        inQuote = !inQuote;
-      } else if (char === ',' && !inQuote) {
-        values.push(currentValue.trim());
-        currentValue = "";
-      } else {
-        currentValue += char;
-      }
+  try {
+    const lines = csv.trim().split("\n");
+    if (lines.length < 2) {
+      throw new Error("Not enough data rows");
     }
     
-    // Add the last value
-    values.push(currentValue.trim());
-    rows.push(values);
-  }
-  
-  // Process headers and map to standard fields
-  const headers = rows[0];
-  const mappedHeaders = headers.map(header => {
-    // Remove quotes and trim
-    const cleanHeader = header.replace(/^"|"$/g, '').trim();
-    // Map to standard field or use original
-    return COLUMN_MAPPING[cleanHeader] || cleanHeader;
-  });
-  
-  // Process data rows
-  const data = rows.slice(1).map(row => {
-    const obj = {
-      team: "Unknown Team",
-      w: 0,
-      l: 0,
-      t: 0,
-      pts: 0,
-      gf: 0,
-      ga: 0
-    };
+    const headers = lines[0].split(",").map(h => h.trim());
+    const mappedHeaders = headers.map(h => COLUMN_MAPPING[h] || h);
     
-    // Map each value to the correct field
-    mappedHeaders.forEach((header, i) => {
-      if (i < row.length) {
-        const value = row[i].replace(/^"|"$/g, '').trim();
-        
-        // If it's a known field, store it
-        if (header in obj) {
-          // Convert number fields to integers
-          if (header !== 'team') {
-            obj[header] = parseInt(value) || 0;
-          } else {
-            obj[header] = value || "Unknown Team";
-          }
-        }
+    const result = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(",").map(v => v.trim());
+      
+      // Skip empty lines or lines with no team name
+      if (values.length === 0 || (values.length === 1 && !values[0]) || !values[1]) {
+        continue;
       }
-    });
+      
+      const obj = {
+        team: values[1] || "Unknown Team", // Team name is in the second column
+        w: parseInt(values[2]) || 0, // Wins
+        l: parseInt(values[3]) || 0, // Losses
+        t: parseInt(values[4]) || 0, // Ties
+        pts: parseInt(values[7]) || 0, // Points
+        gf: parseInt(values[6]) || 0, // Goals Scored
+        ga: 0 // Goals Against (not in the sheet)
+      };
+      
+      result.push(obj);
+    }
     
-    return obj;
-  });
-  
-  return data;
+    return result;
+  } catch (err) {
+    console.error("Error parsing CSV:", err);
+    return [];
+  }
 }
 
 /**
