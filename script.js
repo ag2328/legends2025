@@ -4,6 +4,7 @@ const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2z2qeTV7pdg
 // DOM Elements
 const standingsContainer = document.getElementById('standings');
 const lastUpdated = document.getElementById('last-updated');
+const refreshButton = document.getElementById('refresh-btn');
 
 // Function to fetch data from Google Sheets
 async function fetchLeaderboardData() {
@@ -56,12 +57,12 @@ function parseCSV(csvText) {
         
         const entry = {
             Team: teamName,
-            Wins: values[2]?.trim() || '0',
-            Losses: values[3]?.trim() || '0',
-            Ties: values[4]?.trim() || '0',
-            'Games Played': values[5]?.trim() || '0',
-            'Goals Scored': values[6]?.trim() || '0',
-            Points: values[7]?.trim() || '0'
+            Wins: parseInt(values[2]?.trim() || '0', 10),
+            Losses: parseInt(values[3]?.trim() || '0', 10),
+            Ties: parseInt(values[4]?.trim() || '0', 10),
+            'Games Played': parseInt(values[5]?.trim() || '0', 10),
+            'Goals Scored': parseInt(values[6]?.trim() || '0', 10),
+            Points: parseInt(values[7]?.trim() || '0', 10)
         };
         
         data.push(entry);
@@ -71,39 +72,56 @@ function parseCSV(csvText) {
     return { headers, data };
 }
 
-// Render the leaderboard
+// Render the leaderboard with new card-based design
 function renderLeaderboard(leaderboardData) {
     if (!leaderboardData || !leaderboardData.data.length) {
-        standingsContainer.innerHTML = '<tr><td colspan="7" class="error">No data available</td></tr>';
+        standingsContainer.innerHTML = '<div class="error">No data available</div>';
         return;
     }
     
     // Sort data by points (descending), then by wins, then by goals scored
     const sortedData = [...leaderboardData.data].sort((a, b) => {
         // First tiebreaker: Points
-        const pointsDiff = parseInt(b.Points) - parseInt(a.Points);
+        const pointsDiff = b.Points - a.Points;
         if (pointsDiff !== 0) return pointsDiff;
         
         // Second tiebreaker: Wins
-        const winsDiff = parseInt(b.Wins) - parseInt(a.Wins);
+        const winsDiff = b.Wins - a.Wins;
         if (winsDiff !== 0) return winsDiff;
         
         // Third tiebreaker: Goals Scored
-        return parseInt(b['Goals Scored']) - parseInt(a['Goals Scored']);
+        return b['Goals Scored'] - a['Goals Scored'];
     });
     
     let html = '';
-    sortedData.forEach((entry) => {
+    sortedData.forEach((team) => {
+        // Convert team name to slug for image path
+        const teamSlug = team.Team.toLowerCase().replace(/\s+/g, '_');
+        const logoPath = `static/logos/${teamSlug}.png`;
+        
         html += `
-            <tr>
-                <td class="team">${entry.Team || ''}</td>
-                <td class="stats">${entry.Wins || 0}</td>
-                <td class="stats">${entry.Losses || 0}</td>
-                <td class="stats">${entry.Ties || 0}</td>
-                <td class="stats">${entry['Games Played'] || 0}</td>
-                <td class="stats">${entry['Goals Scored'] || 0}</td>
-                <td class="points">${entry.Points || 0}</td>
-            </tr>
+            <div class="team-card">
+                <div class="team-logo-container">
+                    <img src="${logoPath}" alt="${team.Team}" class="team-logo" onerror="this.src='/api/placeholder/36/36'">
+                </div>
+                <div class="team-name">${team.Team}</div>
+                <div class="record">${team.Wins}-${team.Losses}-${team.Ties}</div>
+                
+                <div class="gp-container">
+                    <div class="stat-label">GP</div>
+                    <div class="stat-value">${team['Games Played']}</div>
+                </div>
+                
+                <div class="gf-container">
+                    <div class="stat-label">GF</div>
+                    <div class="stat-value">${team['Goals Scored']}</div>
+                </div>
+                
+                <div class="points-container">
+                    <div class="stat-label">PTS</div>
+                    <div class="stat-value">${team.Points}</div>
+                </div>
+            </div>
         `;
     });
     
@@ -119,18 +137,18 @@ function updateLastUpdated() {
 // Display error message
 function displayError(message) {
     standingsContainer.innerHTML = `
-        <tr>
-            <td colspan="7" class="error">
-                Error: ${message}<br>
-                Make sure your Google Sheet is public (Anyone with the link can view).
-            </td>
-        </tr>
+        <div class="error">
+            Error: ${message}<br>
+            Make sure your Google Sheet is public (Anyone with the link can view).
+        </div>
     `;
 }
 
 // Main function to fetch and display data
 async function fetchAndDisplayData() {
     try {
+        standingsContainer.innerHTML = '<div class="loading">Loading standings data...</div>';
+        
         const data = await fetchLeaderboardData();
         if (data) {
             renderLeaderboard(data);
@@ -141,6 +159,9 @@ async function fetchAndDisplayData() {
         displayError(error.message);
     }
 }
+
+// Add refresh button event listener
+refreshButton.addEventListener('click', fetchAndDisplayData);
 
 // Initial load
 fetchAndDisplayData();
