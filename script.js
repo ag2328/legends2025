@@ -1,158 +1,379 @@
+// Google Sheets CSV URL
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2z2qeTV7pdgq6l1_B8AHdr6ysBIoTy0v2zE20o54IqoRKX2J8hZw34s0rv2akIKZqMTQHv3BtOdv4/pub?gid=0&single=true&output=csv";
 
+// Fallback data in case the fetch fails
+const FALLBACK_DATA = [
+  { team: "Red Wings", w: 5, l: 2, t: 1, pts: 11, gf: 25, ga: 18 },
+  { team: "Maple Leafs", w: 4, l: 3, t: 1, pts: 9, gf: 22, ga: 20 },
+  { team: "Bruins", w: 3, l: 3, t: 2, pts: 8, gf: 19, ga: 19 },
+  { team: "Canadiens", w: 2, l: 5, t: 1, pts: 5, gf: 15, ga: 24 },
+  { team: "Lightning", w: 1, l: 6, t: 1, pts: 3, gf: 12, ga: 22 }
+];
+
+// Column mapping - maps different possible header names to our standard fields
+const COLUMN_MAPPING = {
+  // Team name variations
+  'team': 'team',
+  'name': 'team',
+  'team_name': 'team',
+  'team name': 'team',
+  'teamname': 'team',
+  'Team': 'team',
+  // Win variations
+  'w': 'w',
+  'win': 'w',
+  'wins': 'w',
+  'W': 'w',
+  'Wins': 'w',
+  // Loss variations
+  'l': 'l',
+  'loss': 'l',
+  'losses': 'l',
+  'L': 'l',
+  'Losses': 'l',
+  // Tie variations
+  't': 't',
+  'tie': 't',
+  'ties': 't',
+  'T': 't',
+  'Ties': 't',
+  // Point variations
+  'pts': 'pts',
+  'points': 'pts',
+  'PTS': 'pts',
+  'Points': 'pts',
+  'p': 'pts',
+  'P': 'pts',
+  // Goals for variations
+  'gf': 'gf',
+  'goals_for': 'gf',
+  'goalsfor': 'gf',
+  'goals for': 'gf',
+  'GF': 'gf',
+  'GoalsFor': 'gf',
+  // Goals against variations
+  'ga': 'ga',
+  'goals_against': 'ga',
+  'goalsagainst': 'ga',
+  'goals against': 'ga',
+  'GA': 'ga',
+  'GoalsAgainst': 'ga'
+};
+
+/**
+ * Fetches standings data from Google Sheets and renders the table
+ */
 async function fetchData() {
-  const loadingElement = document.createElement("p");
-  loadingElement.className = "loading";
-  loadingElement.textContent = "Loading data...";
-  document.querySelector("main").appendChild(loadingElement);
+  showLoadingMessage();
   
   try {
-    const res = await fetch(SHEET_URL);
+    // Try to fetch data from Google Sheets
+    const data = await fetchAndParseCSV();
     
-    // Check if the request was successful
-    if (!res.ok) {
-      throw new Error(`HTTP error: ${res.status}`);
+    if (!data || data.length === 0) {
+      throw new Error("No data returned from server");
     }
     
-    const csv = await res.text();
-    
-    // Basic validation to ensure we have CSV data
-    if (!csv || csv.trim() === "") {
-      throw new Error("Empty data received");
-    }
-    
-    const rows = csv.trim().split("\n").map(row => row.split(","));
-    
-    // Check if we have at least a header row
-    if (rows.length < 1) {
-      throw new Error("Invalid CSV format: no header row");
-    }
-    
-    const headers = rows[0];
-    const data = rows.slice(1).map(row => {
-      const obj = {};
-      headers.forEach((h, i) => {
-        obj[h.trim()] = row[i]?.trim() || "0"; // Default to "0" for missing values
-      });
-      return obj;
-    });
-    
+    // Render the table with the fetched data
     renderTable(data);
     updateTimestamp();
-    
-    // Remove any error messages
-    const errorElement = document.querySelector(".error-message");
-    if (errorElement) {
-      errorElement.remove();
-    }
+    hideLoadingMessage();
+    hideErrorMessage();
   } catch (err) {
     console.error("Error loading standings:", err);
-    showErrorMessage("Failed to load standings. Please try again later.");
-  } finally {
-    // Remove loading message
-    loadingElement.remove();
+    
+    // Show error message to the user
+    showErrorMessage("Unable to load latest data. Using cached data instead.");
+    
+    // Use fallback data
+    renderTable(FALLBACK_DATA);
+    updateTimestamp("(using cached data)");
+    hideLoadingMessage();
   }
 }
 
+/**
+ * Fetches and parses CSV data from Google Sheets
+ * @returns {Promise<Array>} Parsed data array
+ */
+async function fetchAndParseCSV() {
+  const response = await fetch(SHEET_URL);
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error: ${response.status}`);
+  }
+  
+  const csv = await response.text();
+  
+  if (!csv || csv.trim() === "") {
+    throw new Error("Empty data received from server");
+  }
+  
+  return parseCSV(csv);
+}
+
+/**
+ * Parses CSV data into an array of objects
+ * @param {string} csv - CSV data
+ * @returns {Array} Array of objects with team data
+ */
+function parseCSV(csv) {
+  // Split into rows and handle quoted values properly
+  const rows = [];
+  const lines = csv.trim().split("\n");
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    // Split by comma but respect quotes
+    let inQuote = false;
+    let currentValue = "";
+    const values = [];
+    
+    for (let j = 0; j < line.length; j++) {
+      const char = line[j];
+      
+      if (char === '"' && (j === 0 || line[j - 1] !== '\\')) {
+        inQuote = !inQuote;
+      } else if (char === ',' && !inQuote) {
+        values.push(currentValue.trim());
+        currentValue = "";
+      } else {
+        currentValue += char;
+      }
+    }
+    
+    // Add the last value
+    values.push(currentValue.trim());
+    rows.push(values);
+  }
+  
+  // Process headers and map to standard fields
+  const headers = rows[0];
+  const mappedHeaders = headers.map(header => {
+    // Remove quotes and trim
+    const cleanHeader = header.replace(/^"|"$/g, '').trim();
+    // Map to standard field or use original
+    return COLUMN_MAPPING[cleanHeader] || cleanHeader;
+  });
+  
+  // Process data rows
+  const data = rows.slice(1).map(row => {
+    const obj = {
+      team: "Unknown Team",
+      w: 0,
+      l: 0,
+      t: 0,
+      pts: 0,
+      gf: 0,
+      ga: 0
+    };
+    
+    // Map each value to the correct field
+    mappedHeaders.forEach((header, i) => {
+      if (i < row.length) {
+        const value = row[i].replace(/^"|"$/g, '').trim();
+        
+        // If it's a known field, store it
+        if (header in obj) {
+          // Convert number fields to integers
+          if (header !== 'team') {
+            obj[header] = parseInt(value) || 0;
+          } else {
+            obj[header] = value || "Unknown Team";
+          }
+        }
+      }
+    });
+    
+    return obj;
+  });
+  
+  return data;
+}
+
+/**
+ * Renders the standings table with team data
+ * @param {Array} data - Array of team data objects
+ */
 function renderTable(data) {
   const tbody = document.querySelector("#standings tbody");
   tbody.innerHTML = "";
-
-  // Add fallback if no data
-  if (!data || data.length === 0) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="8">No team data available</td>`;
-    tbody.appendChild(tr);
-    return;
-  }
-
-  // Sort data by points, then by goals for as tiebreaker
+  
+  // Sort by points (high to low) then by goals for (high to low)
   data.sort((a, b) => {
-    const ptsA = parseInt(a.PTS || 0);
-    const ptsB = parseInt(b.PTS || 0);
-    if (ptsB !== ptsA) return ptsB - ptsA;
-    return parseInt(b.GF || 0) - parseInt(a.GF || 0);
+    // First compare by points
+    const pointsDiff = b.pts - a.pts;
+    if (pointsDiff !== 0) return pointsDiff;
+    
+    // If points are equal, break tie with goals for
+    return b.gf - a.gf;
   });
-
+  
+  // Render each team row
   data.forEach((team, index) => {
     const tr = document.createElement("tr");
     
-    // Apply alternate row styling
+    // Apply alternating row styles
     if (index % 2 === 1) {
-      tr.className = "alt-row";
+      tr.classList.add("alt-row");
     }
-
-    // Use safeguard for team name
-    const teamName = team.Team || "Unknown Team";
+    
+    // Get team name and slug for logo
+    const teamName = team.team || "Unknown Team";
     const teamSlug = teamName.toLowerCase().replace(/\s+/g, "_");
     
     // Create logo cell with error handling
+    const logoCell = document.createElement("td");
     const logoImg = document.createElement("img");
     logoImg.src = `static/logos/${teamSlug}.png`;
     logoImg.alt = teamName;
     logoImg.width = 30;
+    
+    // Handle missing images
     logoImg.onerror = function() {
+      // Try with fallback image
       this.src = "static/logos/default.png";
       this.classList.add("error");
-      // If default image is also missing, show text instead
+      
+      // If default is also missing, show first letter of team name
       this.onerror = function() {
         this.style.display = "none";
-        this.parentNode.textContent = teamName.charAt(0);
+        logoCell.textContent = teamName.charAt(0).toUpperCase();
+        logoCell.classList.add("text-logo");
       };
     };
     
-    const logoCell = document.createElement("td");
     logoCell.appendChild(logoImg);
-    
-    // Create all cells with safe value access
     tr.appendChild(logoCell);
+    
+    // Add the rest of the cells
     tr.appendChild(createCell(teamName));
-    tr.appendChild(createCell(team.W || "0"));
-    tr.appendChild(createCell(team.L || "0"));
-    tr.appendChild(createCell(team.T || "0"));
-    tr.appendChild(createCell(team.PTS || "0"));
-    tr.appendChild(createCell(team.GF || "0"));
-    tr.appendChild(createCell(team.GA || "0"));
+    tr.appendChild(createCell(team.w));
+    tr.appendChild(createCell(team.l));
+    tr.appendChild(createCell(team.t));
+    tr.appendChild(createCell(team.pts));
+    tr.appendChild(createCell(team.gf));
+    tr.appendChild(createCell(team.ga));
     
     tbody.appendChild(tr);
   });
 }
 
+/**
+ * Creates a table cell with the given content
+ * @param {*} content - Cell content
+ * @returns {HTMLElement} TD element
+ */
 function createCell(content) {
   const td = document.createElement("td");
   td.textContent = content;
   return td;
 }
 
-function updateTimestamp() {
+/**
+ * Updates the timestamp display
+ * @param {string} [suffix] - Optional suffix to add to timestamp
+ */
+function updateTimestamp(suffix = "") {
   const now = new Date();
   const display = now.toLocaleString();
-  document.getElementById("last-updated").textContent = `Last updated: ${display}`;
+  document.getElementById("last-updated").textContent = `Last updated: ${display} ${suffix}`;
 }
 
+/**
+ * Shows a loading message
+ */
+function showLoadingMessage() {
+  // Remove any existing loading message
+  hideLoadingMessage();
+  
+  // Create and show loading message
+  const loadingElement = document.createElement("p");
+  loadingElement.className = "loading";
+  loadingElement.id = "loading-message";
+  loadingElement.textContent = "Loading standings data...";
+  
+  const container = document.getElementById("status-container");
+  container.appendChild(loadingElement);
+}
+
+/**
+ * Hides the loading message
+ */
+function hideLoadingMessage() {
+  const loadingElement = document.getElementById("loading-message");
+  if (loadingElement) {
+    loadingElement.remove();
+  }
+}
+
+/**
+ * Shows an error message
+ * @param {string} message - Error message to display
+ */
 function showErrorMessage(message) {
   // Remove any existing error message
-  const existingError = document.querySelector(".error-message");
-  if (existingError) {
-    existingError.remove();
-  }
+  hideErrorMessage();
   
-  // Create error element
+  // Create and show error message
   const errorElement = document.createElement("p");
   errorElement.className = "error-message";
+  errorElement.id = "error-message";
   errorElement.textContent = message;
   
-  // Insert after the table
-  const table = document.getElementById("standings");
-  table.parentNode.insertBefore(errorElement, table.nextSibling);
+  const container = document.getElementById("status-container");
+  container.appendChild(errorElement);
 }
 
-// Add event listener for page load
+/**
+ * Hides the error message
+ */
+function hideErrorMessage() {
+  const errorElement = document.getElementById("error-message");
+  if (errorElement) {
+    errorElement.remove();
+  }
+}
+
+// Initialize on DOM load
 document.addEventListener("DOMContentLoaded", () => {
-  // Initial load
+  // Initial data load
   fetchData();
   
-  // Add refresh button event listener
-  const refreshButton = document.querySelector("button");
-  refreshButton.addEventListener("click", fetchData);
+  // Set up refresh button
+  const refreshButton = document.getElementById("refresh-btn");
+  if (refreshButton) {
+    refreshButton.addEventListener("click", fetchData);
+  }
+  
+  // Check for debugging parameter in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has("debug")) {
+    console.log("Debug mode enabled");
+    
+    // Add debug info to the page
+    const debugInfo = document.createElement("div");
+    debugInfo.id = "debug-info";
+    debugInfo.innerHTML = `
+      <h3>Debug Info</h3>
+      <p>Sheet URL: ${SHEET_URL}</p>
+      <button id="debug-fallback">Use Fallback Data</button>
+      <button id="debug-test-headers">Test Header Mapping</button>
+    `;
+    
+    document.querySelector("footer").appendChild(debugInfo);
+    
+    // Add debug button handlers
+    document.getElementById("debug-fallback").addEventListener("click", () => {
+      renderTable(FALLBACK_DATA);
+      updateTimestamp("(debug fallback)");
+    });
+    
+    document.getElementById("debug-test-headers").addEventListener("click", () => {
+      console.log("Headers mapping test:", COLUMN_MAPPING);
+      alert("Check console for header mapping");
+    });
+  }
 });
