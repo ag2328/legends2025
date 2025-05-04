@@ -1,97 +1,50 @@
-body {
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0;
-  background: #f7f9fc;
-  color: #333;
-  text-align: center;
-}
+// index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Summer Legends 2025</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Summer Legends 2025 Standings</h1>
+    <p id="last-updated">Last updated: loading...</p>
+  </header>
 
-header {
-  background: #004080;
-  color: white;
-  padding: 1rem;
-}
+  <main>
+    <table id="standings">
+      <thead>
+        <tr>
+          <th>Logo</th>
+          <th>Team</th>
+          <th>W</th>
+          <th>L</th>
+          <th>T</th>
+          <th>PTS</th>
+          <th>GF</th>
+          <th>GA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Loading placeholder -->
+        <tr>
+          <td colspan="8">Loading standings...</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div id="status-container">
+      <!-- Status messages will appear here -->
+    </div>
+  </main>
 
-h1 {
-  margin: 0;
-  font-size: 1.5rem;
-}
+  <footer>
+    <p><button id="refresh-btn">Refresh Data</button></p>
+    <p class="footer-info">Summer Legends 2025 In-House Hockey League</p>
+  </footer>
 
-main {
-  padding: 1rem;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  max-width: 600px;
-  margin: auto;
-  border-collapse: collapse;
-  background: white;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-}
-
-th, td {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  text-align: center;
-}
-
-img {
-  max-height: 30px;
-}
-
-.text-logo {
-  font-weight: bold;
-  font-size: 18px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-}
-
-.alt-row {
-  background-color: #f5f9ff;
-}
-
-footer {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
-  background: #004080;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #00569b;
-}
-
-.loading {
-  display: inline-block;
-  margin-top: 10px;
-  font-style: italic;
-  color: #666;
-}
-
-.error-message {
-  color: #d9534f;
-  margin-top: 10px;
-  font-weight: bold;
-}
-
-#status-container {
-  min-height: 30px;
-  margin: 15px 0;
-} 
+  <script src="script.js"></script>
+</body>
+</html>
