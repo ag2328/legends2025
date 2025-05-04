@@ -23,19 +23,105 @@ main {
   overflow-x: auto;
 }
 
-table {
-  width: 100%;
+.standings-container {
   max-width: 600px;
-  margin: auto;
-  border-collapse: collapse;
+  margin: 0 auto;
   background: white;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-th, td {
+.standings-header {
+  display: flex;
+  background: #004080;
+  color: white;
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  font-weight: bold;
+}
+
+.team-header {
+  flex: 2;
+  text-align: left;
+  padding-left: 1rem;
+}
+
+.stats-header {
+  flex: 3;
+  display: flex;
+  justify-content: space-around;
+}
+
+.stats-header span {
+  width: 2rem;
   text-align: center;
+}
+
+.standings-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.team-row {
+  display: flex;
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+
+.team-row:last-child {
+  border-bottom: none;
+}
+
+.team-cell {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 1rem;
+}
+
+.team-stats {
+  flex: 3;
+  display: flex;
+  justify-content: space-around;
+}
+
+.team-stats span {
+  width: 2rem;
+  text-align: center;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.team-name {
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 img {
@@ -46,17 +132,10 @@ img {
   object-fit: contain;
 }
 
-.text-logo {
-  font-weight: bold;
-  font-size: 18px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
+.loading-placeholder {
+  padding: 1rem;
+  text-align: center;
+  color: #666;
 }
 
 .alt-row {
@@ -98,40 +177,4 @@ button:hover {
 #status-container {
   min-height: 30px;
   margin: 15px 0;
-}
-
-.team-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  overflow: hidden;
-}
-
-.team-name {
-  font-weight: bold;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.text-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background-color: #f0f0f0;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 12px;
 } 
