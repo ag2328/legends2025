@@ -32,8 +32,8 @@ body {
 .app-logo {
   display: inline-block;
   margin-bottom: 16px;
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   background-color: var(--logo-blue);
   border-radius: 14px;
   position: relative;
@@ -45,13 +45,13 @@ body {
 }
 
 .app-title {
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
 .app-subtitle {
-  font-size: 14px;
+  font-size: 17px;
   color: var(--text-secondary);
 }
 
@@ -59,7 +59,7 @@ body {
   background: none;
   border: none;
   color: var(--accent);
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 500;
   cursor: pointer;
 }
@@ -81,6 +81,7 @@ body {
   align-items: center;
   padding: 0.5em 1em;
   background: none;
+  font-size: 1.25em;
 }
 
 .standings-header {
@@ -123,7 +124,7 @@ body {
 
 .team-name {
   font-weight: 600;
-  font-size: 1em;
+  font-size: 1.25em;
   color: var(--text-primary);
   margin-left: 0.5em;
   overflow: hidden;
@@ -148,13 +149,13 @@ body {
 #last-updated {
   text-align: center;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 15px;
   margin-top: 24px;
 }
 
 @media (max-width: 500px) {
   .standings-header, .standings-row {
-    font-size: 0.9em;
+    font-size: 1.1em;
     padding: 0.3em 0.5em;
     grid-template-columns: 1.2em 8em 1fr 1fr 1fr 1fr 1fr 1fr;
   }
@@ -163,7 +164,7 @@ body {
     height: 1.2em;
   }
   .team-name {
-    font-size: 0.95em;
+    font-size: 1.2em;
   }
 }
 
