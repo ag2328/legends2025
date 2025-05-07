@@ -9,43 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
-        .schedule-grid {
-            display: grid;
-            grid-template-rows: auto;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            background: none;
-            margin-bottom: 32px;
-            min-width: 320px;
-        }
-
-        .schedule-header, .schedule-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            align-items: center;
-            padding: 0.5em 1em;
-            background: none;
-            font-size: 1.25em;
-        }
-
-        .schedule-header {
-            background: var(--surface-2);
-            font-weight: 700;
-            font-size: 1em;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            text-transform: uppercase;
-        }
-
-        .schedule-row {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .schedule-row:last-child {
-            border-bottom: none;
-        }
-
         .winner {
             font-weight: 700;
         }
@@ -54,10 +17,6 @@
             content: "→";
             margin-right: 0.5em;
             color: var(--accent);
-        }
-
-        .future-game {
-            color: var(--text-secondary);
         }
 
         .back-link {
