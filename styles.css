@@ -55,13 +55,26 @@ body {
   color: var(--text-secondary);
 }
 
+.header-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 8px;
+}
+
 .refresh-button {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 17px;
-  font-weight: 500;
-  cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 17px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+}
+
+.refresh-button:hover {
+    text-decoration: underline;
 }
 
 .standings-grid {
