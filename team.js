@@ -282,7 +282,7 @@ function renderTeamSchedule(teamName, games) {
             <div class="schedule-header">
                 <div class="header-week">WEEK</div>
                 <div class="header-date">DATE</div>
-                <div class="header-opponent">VS</div>
+                <div class="header-opponent">Vs.</div>
                 <div class="header-score">SCORE</div>
                 <div class="header-result">W/L</div>
             </div>
