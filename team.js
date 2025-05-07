@@ -6,6 +6,7 @@ import { standingsPage, teamPage, scheduleContainer, lastUpdatedTeam, pageTitle 
 let sheetMappingsInitialized = false;
 let initializationPromise = null;
 let scheduleData = null;
+let currentTeamName = null;
 
 // Function to load schedule data from JSON
 async function loadScheduleData() {
@@ -19,6 +20,51 @@ async function loadScheduleData() {
     } catch (error) {
         console.error('Error loading schedule data:', error);
         throw error;
+    }
+}
+
+// Function to handle hash changes
+async function handleHashChange() {
+    const hash = window.location.hash;
+    console.log('Team module: Hash changed:', hash);
+    
+    if (hash.startsWith('#team/')) {
+        const parts = hash.split('/');
+        const teamSlug = parts[1];
+        const teamName = teamSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        console.log('Team module: Loading team data for:', teamName);
+        
+        // Store current team name
+        currentTeamName = teamName;
+        
+        // Show team page and hide standings
+        standingsPage.style.display = 'none';
+        teamPage.classList.add('active');
+        
+        // Update team page title
+        pageTitle.textContent = `${teamName} Schedule`;
+        
+        // Load team data
+        try {
+            // Always reload schedule data on page refresh
+            scheduleData = null;
+            await loadScheduleData();
+            
+            // Ensure sheet mappings are initialized
+            await initializeSheetMappings();
+            
+            // Then load the team data
+            await fetchAndDisplayAllGames(teamName);
+        } catch (error) {
+            console.error('Team module: Error loading team data:', error);
+            scheduleContainer.innerHTML = `
+                <div class="error">
+                    Error loading team data: ${error.message}<br>
+                    Please ensure the Google Sheet is public and accessible.
+                </div>
+            `;
+        }
     }
 }
 
@@ -54,49 +100,6 @@ async function initializeSheetMappings() {
     })();
 
     await initializationPromise;
-}
-
-// Function to handle hash changes
-async function handleHashChange() {
-    const hash = window.location.hash;
-    console.log('Team module: Hash changed:', hash);
-    
-    if (hash.startsWith('#team/')) {
-        const parts = hash.split('/');
-        const teamSlug = parts[1];
-        const teamName = teamSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        
-        console.log('Team module: Loading team data for:', teamName);
-        
-        // Show team page and hide standings
-        standingsPage.style.display = 'none';
-        teamPage.classList.add('active');
-        
-        // Update team page title
-        pageTitle.textContent = `${teamName} Schedule`;
-        
-        // Load team data
-        try {
-            // Load schedule data if not already loaded
-            if (!scheduleData) {
-                await loadScheduleData();
-            }
-            
-            // Ensure sheet mappings are initialized
-            await initializeSheetMappings();
-            
-            // Then load the team data
-            await fetchAndDisplayAllGames(teamName);
-        } catch (error) {
-            console.error('Team module: Error loading team data:', error);
-            scheduleContainer.innerHTML = `
-                <div class="error">
-                    Error loading team data: ${error.message}<br>
-                    Please ensure the Google Sheet is public and accessible.
-                </div>
-            `;
-        }
-    }
 }
 
 // Function to parse game scores from CSV
@@ -356,9 +359,6 @@ function updateLastUpdated() {
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Team module loaded, initializing...');
-    loadScheduleData().catch(error => {
-        console.error('Failed to load schedule data on load:', error);
-    });
     initializeSheetMappings().catch(error => {
         console.error('Failed to initialize sheet mappings on load:', error);
     });
