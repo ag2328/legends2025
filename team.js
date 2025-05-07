@@ -6,6 +6,7 @@ import { standingsPage, teamPage, scheduleContainer, lastUpdatedTeam, pageTitle 
 let sheetMappingsInitialized = false;
 let initializationPromise = null;
 let scheduleData = null;
+let currentTeamName = null;
 
 // Function to load schedule data from JSON
 async function loadScheduleData() {
@@ -19,6 +20,64 @@ async function loadScheduleData() {
     } catch (error) {
         console.error('Error loading schedule data:', error);
         throw error;
+    }
+}
+
+// Function to handle hash changes
+async function handleHashChange() {
+    const hash = window.location.hash;
+    console.log('Team module: Hash changed:', hash);
+    
+    if (hash.startsWith('#team/')) {
+        const parts = hash.split('/');
+        const teamSlug = parts[1];
+        const teamName = teamSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        console.log('Team module: Loading team data for:', teamName);
+        
+        // Store current team name
+        currentTeamName = teamName;
+        
+        // Show team page and hide standings
+        standingsPage.style.display = 'none';
+        teamPage.classList.add('active');
+        
+        // Update team page title and logo
+        pageTitle.textContent = `${teamName} Schedule`;
+        const appLogo = document.querySelector('.team-page .app-logo');
+        if (appLogo) {
+            appLogo.style.background = 'none';
+            appLogo.innerHTML = `<img src="static/logos/${teamSlug}.png" alt="${teamName}" 
+                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAzNiAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIGZpbGw9IiNFRUVFRUUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OTk5OSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiPk5BPC90ZXh0Pjwvc3ZnPg=='">`;
+        }
+        
+        // Load team data
+        try {
+            // Always reload schedule data on page refresh
+            scheduleData = null;
+            await loadScheduleData();
+            
+            // Ensure sheet mappings are initialized
+            await initializeSheetMappings();
+            
+            // Then load the team data
+            await fetchAndDisplayAllGames(teamName);
+        } catch (error) {
+            console.error('Team module: Error loading team data:', error);
+            scheduleContainer.innerHTML = `
+                <div class="error">
+                    Error loading team data: ${error.message}<br>
+                    Please ensure the Google Sheet is public and accessible.
+                </div>
+            `;
+        }
+    } else {
+        // Reset logo to default when returning to standings
+        const appLogo = document.querySelector('.team-page .app-logo');
+        if (appLogo) {
+            appLogo.style.background = 'var(--logo-blue)';
+            appLogo.innerHTML = '';
+        }
     }
 }
 
@@ -54,49 +113,6 @@ async function initializeSheetMappings() {
     })();
 
     await initializationPromise;
-}
-
-// Function to handle hash changes
-async function handleHashChange() {
-    const hash = window.location.hash;
-    console.log('Team module: Hash changed:', hash);
-    
-    if (hash.startsWith('#team/')) {
-        const parts = hash.split('/');
-        const teamSlug = parts[1];
-        const teamName = teamSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        
-        console.log('Team module: Loading team data for:', teamName);
-        
-        // Show team page and hide standings
-        standingsPage.style.display = 'none';
-        teamPage.classList.add('active');
-        
-        // Update team page title
-        pageTitle.textContent = `${teamName} Schedule`;
-        
-        // Load team data
-        try {
-            // Load schedule data if not already loaded
-            if (!scheduleData) {
-                await loadScheduleData();
-            }
-            
-            // Ensure sheet mappings are initialized
-            await initializeSheetMappings();
-            
-            // Then load the team data
-            await fetchAndDisplayAllGames(teamName);
-        } catch (error) {
-            console.error('Team module: Error loading team data:', error);
-            scheduleContainer.innerHTML = `
-                <div class="error">
-                    Error loading team data: ${error.message}<br>
-                    Please ensure the Google Sheet is public and accessible.
-                </div>
-            `;
-        }
-    }
 }
 
 // Function to parse game scores from CSV
@@ -282,7 +298,7 @@ function renderTeamSchedule(teamName, games) {
             <div class="schedule-header">
                 <div class="header-week">WEEK</div>
                 <div class="header-date">DATE</div>
-                <div class="header-opponent">VS</div>
+                <div class="header-opponent">Vs.</div>
                 <div class="header-score">SCORE</div>
                 <div class="header-result">W/L</div>
             </div>
@@ -356,9 +372,6 @@ function updateLastUpdated() {
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Team module loaded, initializing...');
-    loadScheduleData().catch(error => {
-        console.error('Failed to load schedule data on load:', error);
-    });
     initializeSheetMappings().catch(error => {
         console.error('Failed to initialize sheet mappings on load:', error);
     });
