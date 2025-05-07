@@ -229,6 +229,7 @@ body {
     color: var(--text-secondary);
     align-items: center;
     letter-spacing: 0.05em;
+    text-align: center;
 }
 
 .schedule-row {
