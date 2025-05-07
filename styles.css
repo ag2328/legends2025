@@ -229,6 +229,18 @@ body {
     color: var(--text-secondary);
     align-items: center;
     letter-spacing: 0.05em;
+}
+
+/* Left align Week, Date, and Vs. columns */
+.schedule-header > div:nth-child(1),
+.schedule-header > div:nth-child(2),
+.schedule-header > div:nth-child(3) {
+    text-align: left;
+}
+
+/* Center Score and W/L columns */
+.schedule-header > div:nth-child(4),
+.schedule-header > div:nth-child(5) {
     text-align: center;
 }
 
@@ -241,6 +253,19 @@ body {
     align-items: center;
     font-size: 0.9375em;
     transition: background-color 0.2s;
+}
+
+/* Left align Week, Date, and Vs. columns */
+.schedule-row > div:nth-child(1),
+.schedule-row > div:nth-child(2),
+.schedule-row > div:nth-child(3) {
+    text-align: left;
+}
+
+/* Center Score and W/L columns */
+.schedule-row > div:nth-child(4),
+.schedule-row > div:nth-child(5) {
+    text-align: center;
 }
 
 .schedule-row:hover {
