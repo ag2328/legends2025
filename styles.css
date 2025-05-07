@@ -238,17 +238,19 @@ body {
 
 .schedule-header {
     display: grid;
-    grid-template-columns: 0.5fr 0.8fr 1.2fr 0.8fr 0.5fr;
-    gap: 1rem;
-    padding: 0.75em 1em;
-    background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.875em;
-    color: var(--text-secondary);
+    grid-template-columns: 4em 8em 1fr 1fr;
     align-items: center;
-    letter-spacing: 0.05em;
+    padding: 0.5em 1em;
+    background: var(--surface-2);
+    font-weight: 700;
+    font-size: 1em;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+}
+
+.schedule-header > div {
+    padding: 4px;
 }
 
 /* Left align Week, Date, and Vs. columns */
@@ -260,19 +262,21 @@ body {
 
 /* Center Score and W/L columns */
 .schedule-header > div:nth-child(4),
-.schedule-header > div:nth-child(5) {
+.schedule-row > div:nth-child(4) {
     text-align: center;
 }
 
 .schedule-row {
     display: grid;
-    grid-template-columns: 0.5fr 0.8fr 1.2fr 0.8fr 0.5fr;
-    gap: 1rem;
-    padding: 0.75em 1em;
-    border-bottom: 1px solid var(--border);
+    grid-template-columns: 4em 8em 1fr 1fr;
     align-items: center;
-    font-size: 0.9375em;
-    transition: background-color 0.2s;
+    padding: 0.5em 1em;
+    border-bottom: 1px solid var(--border);
+    font-size: 1em;
+}
+
+.schedule-row > div {
+    padding: 4px;
 }
 
 /* Left align Week, Date, and Vs. columns */
@@ -282,23 +286,8 @@ body {
     text-align: left;
 }
 
-/* Center Score and W/L columns */
-.schedule-row > div:nth-child(4),
-.schedule-row > div:nth-child(5) {
-    text-align: center;
-}
-
-.schedule-row:hover {
-    background: var(--surface-1);
-}
-
-.schedule-row:last-child {
-    border-bottom: none;
-}
-
 .schedule-week {
     font-weight: 600;
-    color: var(--text-secondary);
 }
 
 .schedule-date {
@@ -308,26 +297,29 @@ body {
 .schedule-opponent {
     display: flex;
     align-items: center;
-    gap: 0.75em;
+    gap: 0.5em;
 }
 
 .schedule-opponent .team-logo {
     width: 24px;
     height: 24px;
     object-fit: contain;
+    flex-shrink: 0;
+}
+
+.schedule-opponent span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .schedule-score {
-    font-weight: 500;
-    text-align: right;
+    font-weight: 600;
 }
 
 .schedule-result {
     font-weight: 600;
     text-align: center;
-    padding: 0.25em 0.5em;
-    border-radius: 4px;
-    min-width: 24px;
 }
 
 .schedule-result.w {

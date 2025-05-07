@@ -296,7 +296,7 @@ function renderTeamSchedule(teamName, games) {
     let html = `
         <div class="schedule-grid">
             <div class="schedule-header">
-                <div class="header-week">WEEK</div>
+                <div class="header-week">WK</div>
                 <div class="header-date">DATE</div>
                 <div class="header-opponent">Vs.</div>
                 <div class="header-score">SCORE</div>
@@ -315,10 +315,7 @@ function renderTeamSchedule(teamName, games) {
         if (game.date) {
             const date = new Date(game.date);
             if (!isNaN(date)) {
-                formattedDate = date.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
-                });
+                formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
             }
         }
         
