@@ -284,10 +284,9 @@ function combineScheduleAndScores(teamName, scores) {
         const gameIndex = teamGames.findIndex(game => game.weekNumber === score.weekNumber);
         
         if (gameIndex !== -1) {
-            // Update the game with the score data
+            // Update the game with the score data, but keep the original date
             teamGames[gameIndex] = {
                 ...teamGames[gameIndex],
-                date: score.date,
                 team1: score.team1,
                 team2: score.team2,
                 winner: score.winner
@@ -329,9 +328,9 @@ function renderTeamSchedule(teamName, games) {
         // Format date
         let formattedDate = 'TBD';
         if (game.date) {
-            const date = new Date(game.date);
-            if (!isNaN(date)) {
-                formattedDate = `${date.getMonth() + 1}/${date.getDate()}`;
+            const [year, month, day] = game.date.split('-').map(num => parseInt(num, 10));
+            if (year && month && day) {
+                formattedDate = `${month}/${day}`;
             }
         }
         
