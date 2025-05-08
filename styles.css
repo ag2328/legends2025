@@ -51,6 +51,16 @@ body {
   border-radius: 14px;
 }
 
+/* Team page specific logo styles */
+.team-page .app-logo {
+  border-radius: 50%;
+  transform: none;
+}
+
+.team-page .app-logo img {
+  border-radius: 50%;
+}
+
 .app-title {
   font-size: 30px;
   font-weight: 700;
@@ -236,9 +246,15 @@ body {
     font-family: 'Outfit', sans-serif;
 }
 
+.schedule-header, .schedule-row {
+  display: grid;
+  grid-template-columns: 4em 8em 1fr 1fr 1fr;
+  align-items: center;
+}
+
 .schedule-header {
     display: grid;
-    grid-template-columns: 4em 8em 1fr 1fr;
+    grid-template-columns: 4em 8em 1fr 1fr 1fr;
     align-items: center;
     padding: 0.5em 1em;
     background: var(--surface-2);
@@ -262,13 +278,15 @@ body {
 
 /* Center Score and W/L columns */
 .schedule-header > div:nth-child(4),
-.schedule-row > div:nth-child(4) {
+.schedule-header > div:nth-child(5),
+.schedule-row > div:nth-child(4),
+.schedule-row > div:nth-child(5) {
     text-align: center;
 }
 
 .schedule-row {
     display: grid;
-    grid-template-columns: 4em 8em 1fr 1fr;
+    grid-template-columns: 4em 8em 1fr 1fr 1fr;
     align-items: center;
     padding: 0.5em 1em;
     border-bottom: 1px solid var(--border);
@@ -298,6 +316,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5em;
+    min-height: 24px;
 }
 
 .schedule-opponent .team-logo {
@@ -305,12 +324,13 @@ body {
     height: 24px;
     object-fit: contain;
     flex-shrink: 0;
+    display: block;
 }
 
 .schedule-opponent span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 24px;
 }
 
 .schedule-score {

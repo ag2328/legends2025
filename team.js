@@ -31,7 +31,16 @@ async function handleHashChange() {
     if (hash.startsWith('#team/')) {
         const parts = hash.split('/');
         const teamSlug = parts[1];
-        const teamName = teamSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        // Handle team name conversion for both formats
+        let teamName;
+        if (teamSlug.includes('_')) {
+            // Handle teams with underscores (e.g., maple_leafs -> Maple Leafs)
+            teamName = teamSlug.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        } else {
+            // Handle teams without underscores (e.g., canadiens -> Canadiens)
+            teamName = teamSlug.charAt(0).toUpperCase() + teamSlug.slice(1);
+        }
         
         console.log('Team module: Loading team data for:', teamName);
         
@@ -143,91 +152,91 @@ function parseGameScores(csvData, weekName, teamName) {
     let game2Start = -1;
     
     for (let i = 0; i < lines.length; i++) {
-        if (lines[i].includes('Game 1:')) {
+        const line = lines[i].trim();
+        if (line.includes('Game 1:')) {
             game1Start = i + 2; // Skip the "Game 1:" line and the header line
-        } else if (lines[i].includes('Game 2')) {
+            console.log('Found Game 1 at line:', i);
+        } else if (line.includes('Game 2')) {
             game2Start = i + 2; // Skip the "Game 2" line and the header line
+            console.log('Found Game 2 at line:', i);
         }
     }
     
-    // Parse Game 1
-    if (game1Start !== -1 && game1Start + 1 < lines.length) {
-        const gameLine = lines[game1Start].split(',');
-        if (gameLine.length >= 3) {
-            const team1Name = gameLine[0]?.trim();
-            const team2Name = gameLine[1]?.trim();
-            const scoreStr = gameLine[2]?.trim();
-            
-            console.log(`Week ${weekNumber} Game 1 teams:`, { team1: team1Name, team2: team2Name });
-            
-            if (team1Name && team2Name && (team1Name === teamName || team2Name === teamName)) {
-                const [score1, score2] = scoreStr.split('-').map(s => parseInt(s.trim(), 10));
-                const score = {
-                    weekNumber,
-                    date: date || weekName,
-                    team1: {
-                        name: team1Name,
-                        final: score1 || 0,
-                        ot_so: gameLine[3]?.trim() || ''
-                    },
-                    team2: {
-                        name: team2Name,
-                        final: score2 || 0,
-                        ot_so: gameLine[3]?.trim() || ''
-                    }
-                };
-                
-                // Only set winner if there are actual scores
-                if (score.team1.final > 0 || score.team2.final > 0) {
-                    score.winner = score.team1.final > score.team2.final ? 
-                        score.team1.name : 
-                        score.team2.final > score.team1.final ? 
-                        score.team2.name : 'Tie';
-                }
-                
-                scores.push(score);
-            }
-        }
-    }
+    console.log('Game 1 start:', game1Start, 'Game 2 start:', game2Start);
     
-    // Parse Game 2
-    if (game2Start !== -1 && game2Start + 1 < lines.length) {
-        const gameLine = lines[game2Start].split(',');
-        if (gameLine.length >= 3) {
-            const team1Name = gameLine[0]?.trim();
-            const team2Name = gameLine[1]?.trim();
-            const scoreStr = gameLine[2]?.trim();
-            
-            console.log(`Week ${weekNumber} Game 2 teams:`, { team1: team1Name, team2: team2Name });
-            
-            if (team1Name && team2Name && (team1Name === teamName || team2Name === teamName)) {
-                const [score1, score2] = scoreStr.split('-').map(s => parseInt(s.trim(), 10));
-                const score = {
-                    weekNumber,
-                    date: date || weekName,
-                    team1: {
-                        name: team1Name,
-                        final: score1 || 0,
-                        ot_so: gameLine[3]?.trim() || ''
-                    },
-                    team2: {
-                        name: team2Name,
-                        final: score2 || 0,
-                        ot_so: gameLine[3]?.trim() || ''
-                    }
-                };
-                
-                // Only set winner if there are actual scores
-                if (score.team1.final > 0 || score.team2.final > 0) {
-                    score.winner = score.team1.final > score.team2.final ? 
-                        score.team1.name : 
-                        score.team2.final > score.team1.final ? 
-                        score.team2.name : 'Tie';
-                }
-                
-                scores.push(score);
-            }
+    // Helper function to parse a game
+    const parseGame = (gameStart, gameNumber) => {
+        if (gameStart === -1) {
+            console.log(`No data for Game ${gameNumber}`);
+            return null;
         }
+        
+        const gameLine = lines[gameStart].split(',');
+        console.log(`Game ${gameNumber} line:`, gameLine);
+        
+        if (gameLine.length < 3) {
+            console.log(`Invalid game data for Game ${gameNumber}:`, gameLine);
+            return null;
+        }
+        
+        const team1Name = gameLine[0]?.trim();
+        const team2Name = gameLine[1]?.trim();
+        const scoreStr = gameLine[2]?.trim();
+        
+        console.log(`Week ${weekNumber} Game ${gameNumber} teams:`, { team1: team1Name, team2: team2Name });
+        
+        if (!team1Name || !team2Name) {
+            console.log(`Missing team names in Game ${gameNumber}`);
+            return null;
+        }
+        
+        if (!(team1Name === teamName || team2Name === teamName)) {
+            console.log(`Team ${teamName} not found in Game ${gameNumber}`);
+            return null;
+        }
+        
+        const [score1, score2] = scoreStr.split('-').map(s => parseInt(s.trim(), 10));
+        const score = {
+            weekNumber,
+            date: date || weekName,
+            team1: {
+                name: team1Name,
+                final: score1 || 0,
+                ot_so: gameLine[3]?.trim() || ''
+            },
+            team2: {
+                name: team2Name,
+                final: score2 || 0,
+                ot_so: gameLine[3]?.trim() || ''
+            }
+        };
+        
+        // Only set winner if there are actual scores
+        if (score.team1.final > 0 || score.team2.final > 0) {
+            score.winner = score.team1.final > score.team2.final ? 
+                score.team1.name : 
+                score.team2.final > score.team1.final ? 
+                score.team2.name : 'Tie';
+        }
+        
+        console.log(`Parsed score for Game ${gameNumber}:`, score);
+        return score;
+    };
+    
+    // Parse both games
+    console.log('Parsing Game 1...');
+    const game1Score = parseGame(game1Start, 1);
+    console.log('Parsing Game 2...');
+    const game2Score = parseGame(game2Start, 2);
+    
+    // Add valid scores to the array
+    if (game1Score) {
+        console.log(`Found valid score in Game 1 for week ${weekNumber}`);
+        scores.push(game1Score);
+    }
+    if (game2Score) {
+        console.log(`Found valid score in Game 2 for week ${weekNumber}`);
+        scores.push(game2Score);
     }
     
     console.log('Parsed scores for week', weekNumber, ':', scores);
@@ -242,12 +251,15 @@ function combineScheduleAndScores(teamName, scores) {
     const teamGames = scheduleData.schedule.flatMap(week => {
         // Get all games for this week
         const weekGames = week.games;
+        console.log(`Week ${week.week} games:`, weekGames);
         
         // Filter games that involve the team
         return weekGames
-            .filter(game => 
-                game.team1 === teamName || game.team2 === teamName
-            )
+            .filter(game => {
+                const involvesTeam = game.team1 === teamName || game.team2 === teamName;
+                console.log(`Game ${game.team1} vs ${game.team2} involves ${teamName}:`, involvesTeam);
+                return involvesTeam;
+            })
             .map(game => ({
                 weekNumber: week.week.toString(),
                 date: week.date || null,
@@ -264,6 +276,8 @@ function combineScheduleAndScores(teamName, scores) {
             }));
     });
     
+    console.log('All games from schedule:', teamGames);
+    
     // Add scores to the games
     scores.forEach(score => {
         // Find the game with matching week number
@@ -279,6 +293,8 @@ function combineScheduleAndScores(teamName, scores) {
                 winner: score.winner
             };
             console.log(`Updated scores for week ${score.weekNumber}`);
+        } else {
+            console.log(`No matching game found for score in week ${score.weekNumber}`);
         }
     });
     
@@ -369,9 +385,24 @@ function updateLastUpdated() {
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Team module loaded, initializing...');
+    // Initialize sheet mappings first
     initializeSheetMappings().catch(error => {
         console.error('Failed to initialize sheet mappings on load:', error);
     });
+    
+    // Check if there's a hash in the URL and handle it
+    if (window.location.hash) {
+        console.log('Team module: Initial hash detected:', window.location.hash);
+        handleHashChange().catch(error => {
+            console.error('Team module: Error handling initial hash:', error);
+            scheduleContainer.innerHTML = `
+                <div class="error">
+                    Error loading team data: ${error.message}<br>
+                    Please refresh the page.
+                </div>
+            `;
+        });
+    }
 });
 
 // Set up hash change listener
@@ -428,23 +459,33 @@ async function fetchAndDisplayAllGames(teamName) {
                 });
                 
                 if (!response.ok) {
-                    console.warn(`Failed to fetch ${week}: ${response.status}`);
-                    return [];
+                    throw new Error(`Failed to fetch ${week}: ${response.status} ${response.statusText}`);
                 }
                 
                 const data = await response.text();
+                if (!data || data.trim() === '') {
+                    throw new Error(`Empty data received for ${week}`);
+                }
+                
                 console.log(`Raw data for ${week}:`, data);
                 const scores = parseGameScores(data, week, teamName);
                 console.log(`Parsed scores for ${week}:`, scores);
                 return scores;
             } catch (error) {
-                console.warn(`Error fetching ${week}:`, error);
-                return [];
+                console.error(`Error fetching ${week}:`, error);
+                throw error; // Re-throw to be caught by Promise.all
             }
         });
         
-        // Wait for all fetches to complete
-        const scoreResults = await Promise.all(fetchPromises);
+        // Wait for all fetches to complete with a timeout
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Fetch operation timed out after 30 seconds')), 30000)
+        );
+        
+        const scoreResults = await Promise.race([
+            Promise.all(fetchPromises),
+            timeoutPromise
+        ]);
         
         // Load schedule data if not already loaded
         if (!scheduleData) {
@@ -458,11 +499,14 @@ async function fetchAndDisplayAllGames(teamName) {
         renderTeamSchedule(teamName, allGames);
         updateLastUpdated();
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error in fetchAndDisplayAllGames:', error);
         scheduleContainer.innerHTML = `
             <div class="error">
-                Error: ${error.message}<br>
-                Make sure your Google Sheet is public (Anyone with the link can view).
+                Error loading schedule data: ${error.message}<br>
+                Please try refreshing the page. If the problem persists, check that:<br>
+                1. The Google Sheet is public (Anyone with the link can view)<br>
+                2. All week sheets are properly formatted<br>
+                3. Your internet connection is stable
             </div>
         `;
     }
