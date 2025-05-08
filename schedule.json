@@ -9,6 +9,7 @@
     "schedule": [
         {
             "week": 1,
+            "date": "2025-05-04",
             "games": [
                 {
                     "team1": "Maple Leafs",
@@ -22,6 +23,7 @@
         },
         {
             "week": 2,
+            "date": "2025-05-11",
             "games": [
                 {
                     "team1": "Maple Leafs",
