@@ -187,6 +187,7 @@ function parseGameScores(csvData, weekName, teamName) {
             return null;
         }
         
+        // Check if either team matches the current team
         if (!(team1Name === teamName || team2Name === teamName)) {
             return null;
         }
@@ -200,6 +201,11 @@ function parseGameScores(csvData, weekName, teamName) {
         if (isNaN(score1) || isNaN(score2)) {
             return null;
         }
+        
+        // Determine which team is the current team
+        const isTeam1 = team1Name === teamName;
+        const currentTeamScore = isTeam1 ? score1 : score2;
+        const opponentScore = isTeam1 ? score2 : score1;
         
         return {
             weekNumber,
@@ -304,13 +310,13 @@ function renderTeamSchedule(teamName, games) {
     games.forEach(game => {
         const isTeam1 = game.team1.name === teamName;
         const opponent = isTeam1 ? game.team2.name : game.team1.name;
-        const isFutureGame = !game.winner; // Game is future if there's no winner
+        const isFutureGame = !game.team1.final && !game.team2.final; // Game is future if there are no scores
         
         // Format date
         let formattedDate = 'TBD';
         if (game.date) {
-            const [year, month, day] = game.date.split('-').map(num => parseInt(num, 10));
-            if (year && month && day) {
+            const [month, day] = game.date.split('/');
+            if (month && day) {
                 formattedDate = `${month}/${day}`;
             }
         }
@@ -325,6 +331,17 @@ function renderTeamSchedule(teamName, games) {
             }
         }
         
+        // Format score
+        let scoreDisplay = 'TBD';
+        if (!isFutureGame) {
+            const teamScore = isTeam1 ? game.team1.final : game.team2.final;
+            const opponentScore = isTeam1 ? game.team2.final : game.team1.final;
+            scoreDisplay = `${teamScore}-${opponentScore}`;
+            if (game.team1.ot_so) {
+                scoreDisplay += ` (${game.team1.ot_so})`;
+            }
+        }
+        
         html += `
             <div class="schedule-row ${isFutureGame ? 'future-game' : ''}">
                 <div class="schedule-week">${game.weekNumber}</div>
@@ -335,12 +352,7 @@ function renderTeamSchedule(teamName, games) {
                          onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAzNiAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIGZpbGw9IiNFRUVFRUUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OTk5OSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiPk5BPC90ZXh0Pjwvc3ZnPg=='">
                     <span>${opponent}</span>
                 </div>
-                <div class="schedule-score">
-                    ${isFutureGame ? 
-                        'TBD' :
-                        `${game.team1.final} - ${game.team2.final}${game.team1.ot_so ? ` (${game.team1.ot_so})` : ''}`
-                    }
-                </div>
+                <div class="schedule-score">${scoreDisplay}</div>
                 <div class="schedule-result ${result.toLowerCase()}">${result}</div>
             </div>
         `;
