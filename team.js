@@ -53,7 +53,7 @@ async function handleHashChange() {
         const appLogo = document.querySelector('.team-page .app-logo');
         if (appLogo) {
             appLogo.style.background = 'none';
-            appLogo.innerHTML = `<img src="/static/logos/${teamSlug}.png" alt="${teamName}" 
+            appLogo.innerHTML = `<img src="static/logos/${teamSlug}.png" alt="${teamName}" 
                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAzNiAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIGZpbGw9IiNFRUVFRUUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OTk5OSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiPk5BPC90ZXh0Pjwvc3ZnPg=='">`;
         }
 
@@ -135,47 +135,58 @@ async function initializeSheetMappings() {
     await initializationPromise;
 }
 
+// Function to parse game scores from CSV
 function parseGameScores(csvData, weekName, teamName) {
+    console.log('Parsing scores for:', weekName, 'for team:', teamName);
     const lines = csvData.split(/\r?\n/);
     const scores = [];
     
-    // Extract week number and date
-    const weekMatch = weekName.match(/week\s*(\d+)/i);
-    const weekNumber = weekMatch ? parseInt(weekMatch[1], 10) : 0;
-    
-    // Find date in the first few lines
+    // Extract week number from first line (e.g., "Week,1,Date,5/4/2025" -> "1")
+    const headerLine = lines[0].split(',');
+    const weekNumber = headerLine[1]?.trim();
+    const dateStr = headerLine[3]?.trim();
     let date = null;
-    for (let i = 0; i < Math.min(5, lines.length); i++) {
-        const dateMatch = lines[i].match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-        if (dateMatch) {
-            date = dateMatch[1];
-            break;
+    
+    if (dateStr) {
+        // Parse date in format "M/D/YYYY"
+        const [month, day, year] = dateStr.split('/').map(num => parseInt(num, 10));
+        if (month && day && year) {
+            date = new Date(year, month - 1, day);
+            // Format as YYYY-MM-DD
+            date = date.toISOString().split('T')[0];
+            console.log('Parsed date:', date);
         }
     }
     
-    // Find game rows
+    // Find Game 1 and Game 2 sections
     let game1Start = -1;
     let game2Start = -1;
     
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].toLowerCase();
-        if (line.includes('game 1')) {
-            game1Start = i + 2; // Skip the header row
-        } else if (line.includes('game 2')) {
-            game2Start = i + 2; // Skip the header row
-            break;
+        const line = lines[i].trim();
+        if (line.includes('Game 1:')) {
+            game1Start = i + 2; // Skip the "Game 1:" line and the header line
+            console.log('Found Game 1 at line:', i);
+        } else if (line.includes('Game 2')) {
+            game2Start = i + 2; // Skip the "Game 2" line and the header line
+            console.log('Found Game 2 at line:', i);
         }
     }
     
+    console.log('Game 1 start:', game1Start, 'Game 2 start:', game2Start);
+    
     // Helper function to parse a game
     const parseGame = (gameStart, gameNumber) => {
-        if (gameStart === -1 || gameStart >= lines.length) {
+        if (gameStart === -1) {
+            console.log(`No data for Game ${gameNumber}`);
             return null;
         }
         
         const gameLine = lines[gameStart].split(',');
+        console.log(`Game ${gameNumber} line:`, gameLine);
         
         if (gameLine.length < 3) {
+            console.log(`Invalid game data for Game ${gameNumber}:`, gameLine);
             return null;
         }
         
@@ -183,29 +194,29 @@ function parseGameScores(csvData, weekName, teamName) {
         const team2Name = gameLine[1]?.trim();
         const scoreStr = gameLine[2]?.trim();
         
+        console.log(`Week ${weekNumber} Game ${gameNumber} teams:`, { team1: team1Name, team2: team2Name });
+        
         if (!team1Name || !team2Name) {
+            console.log(`Missing team names in Game ${gameNumber}`);
             return null;
         }
         
-        // Check if either team matches the current team
         if (!(team1Name === teamName || team2Name === teamName)) {
+            console.log(`Team ${teamName} not found in Game ${gameNumber}`);
             return null;
         }
         
         if (!scoreStr) {
+            console.log(`No score for Game ${gameNumber}`);
             return null;
         }
         
         const [score1, score2] = scoreStr.split('-').map(s => parseInt(s.trim(), 10));
         
         if (isNaN(score1) || isNaN(score2)) {
+            console.log(`Invalid score format for Game ${gameNumber}:`, scoreStr);
             return null;
         }
-        
-        // Determine which team is the current team
-        const isTeam1 = team1Name === teamName;
-        const currentTeamScore = isTeam1 ? score1 : score2;
-        const opponentScore = isTeam1 ? score2 : score1;
         
         return {
             weekNumber,
@@ -295,79 +306,61 @@ function combineScheduleAndScores(teamName, scores) {
 
 // Function to render team schedule
 function renderTeamSchedule(teamName, games) {
+    const scheduleContainer = document.getElementById('schedule');
+    if (!scheduleContainer) return;
+    
     if (!games || games.length === 0) {
         scheduleContainer.innerHTML = '<div class="error">No schedule data available</div>';
         return;
     }
-
-    let html = `
-        <div class="schedule-grid">
-            <div class="schedule-header">
-                <div class="header-week">WK</div>
-                <div class="header-date">DATE</div>
-                <div class="header-opponent">Vs.</div>
-                <div class="header-score">SCORE</div>
-                <div class="header-result">W/L</div>
-            </div>
-    `;
-
-    // Process games
+    
+    let html = '';
     games.forEach(game => {
-        const isTeam1 = game.team1.name === teamName;
-        const opponent = isTeam1 ? game.team2.name : game.team1.name;
-        const isFutureGame = !game.team1.final && !game.team2.final; // Game is future if there are no scores
+        const isFutureGame = !game.team1?.final && !game.team2?.final;
+        const date = game.date || 'TBD';
         
-        // Format date
-        let formattedDate = 'TBD';
-        if (game.date) {
-            // Handle both YYYY-MM-DD and MM/DD/YYYY formats
-            if (game.date.includes('-')) {
-                const [year, month, day] = game.date.split('-');
-                formattedDate = `${month}/${day}`;
-            } else if (game.date.includes('/')) {
-                const [month, day] = game.date.split('/');
-                formattedDate = `${month}/${day}`;
-            }
+        // Format date if it's in YYYY-MM-DD format
+        let formattedDate = date;
+        if (date.includes('-')) {
+            const [year, month, day] = date.split('-');
+            formattedDate = `${month}/${day}/${year}`;
         }
         
-        // Determine W/L/T result
+        // Determine opponent and score
+        const isTeam1 = game.team1?.name === teamName;
+        const opponent = isTeam1 ? game.team2?.name : game.team1?.name;
+        const teamScore = isTeam1 ? game.team1?.final : game.team2?.final;
+        const opponentScore = isTeam1 ? game.team2?.final : game.team1?.final;
+        
+        // Determine result
         let result = '';
         if (!isFutureGame) {
-            if (game.winner === 'Tie') {
-                result = 'T';
+            if (teamScore > opponentScore) {
+                result = 'W';
+            } else if (teamScore < opponentScore) {
+                result = 'L';
             } else {
-                result = game.winner === teamName ? 'W' : 'L';
+                result = 'T';
             }
         }
         
-        // Format score
-        let scoreDisplay = 'TBD';
-        if (!isFutureGame) {
-            const teamScore = isTeam1 ? game.team1.final : game.team2.final;
-            const opponentScore = isTeam1 ? game.team2.final : game.team1.final;
-            scoreDisplay = `${teamScore}-${opponentScore}`;
-            if (game.team1.ot_so) {
-                scoreDisplay += ` (${game.team1.ot_so})`;
-            }
+        // Format score display
+        let scoreDisplay = isFutureGame ? 'TBD' : `${teamScore}-${opponentScore}`;
+        if (game.team1?.ot_so || game.team2?.ot_so) {
+            scoreDisplay += ' (OT)';
         }
         
         html += `
-            <div class="schedule-row ${isFutureGame ? 'future-game' : ''}">
-                <div class="schedule-week">${game.weekNumber}</div>
-                <div class="schedule-date">${formattedDate}</div>
-                <div class="schedule-opponent">
-                    <img class="team-logo" src="static/logos/${opponent.toLowerCase().replace(/\s+/g, '_')}.png" 
-                         alt="${opponent}" 
-                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAzNiAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIGZpbGw9IiNFRUVFRUUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OTk5OSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiPk5BPC90ZXh0Pjwvc3ZnPg=='">
-                    <span>${opponent}</span>
-                </div>
-                <div class="schedule-score">${scoreDisplay}</div>
-                <div class="schedule-result ${result.toLowerCase()}">${result}</div>
+            <div class="schedule-row ${result.toLowerCase()}">
+                <div class="week">Week ${game.weekNumber}</div>
+                <div class="date">${formattedDate}</div>
+                <div class="opponent">vs ${opponent}</div>
+                <div class="score">${scoreDisplay}</div>
+                <div class="result">${result}</div>
             </div>
         `;
     });
-
-    html += '</div>';
+    
     scheduleContainer.innerHTML = html;
 }
 
