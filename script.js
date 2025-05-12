@@ -6,6 +6,7 @@ import { standingsPage, teamPage, standingsContainer, lastUpdated } from './dom.
 let SHEET_URL = null;
 let STATIC_DATA = null;
 const BASE_URL = 'https://ag2328.github.io/legends2025';
+let LAST_SHEET_UPDATE = null;
 
 // Load static data
 async function loadStaticData() {
@@ -114,6 +115,13 @@ async function fetchLeaderboardData() {
             console.log('Response status:', response.status);
             console.log('Response status text:', response.statusText);
             console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+            
+            // Store the last-modified timestamp
+            const lastModified = response.headers.get('last-modified');
+            if (lastModified) {
+                LAST_SHEET_UPDATE = new Date(lastModified);
+                console.log('Sheet last updated:', LAST_SHEET_UPDATE);
+            }
             
             // Log the raw response for debugging
             const rawResponse = await response.text();
@@ -243,8 +251,8 @@ function renderLeaderboard(leaderboardData) {
 
 // Update last updated timestamp
 function updateLastUpdated() {
-    const now = new Date();
-    lastUpdated.textContent = `Last updated: ${now.toLocaleString(undefined, {
+    const timestamp = LAST_SHEET_UPDATE || new Date();
+    lastUpdated.textContent = `Last updated: ${timestamp.toLocaleString(undefined, {
         year: 'numeric',
         month: 'numeric',
         day: 'numeric',
