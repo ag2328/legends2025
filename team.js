@@ -317,53 +317,69 @@ function renderTeamSchedule(teamName, games) {
         return;
     }
     
-    let html = '';
+    let html = `
+        <div class="schedule-header">
+            <div class="header-week">WK</div>
+            <div class="header-date">DATE</div>
+            <div class="header-opponent">Vs.</div>
+            <div class="header-score">SCORE</div>
+            <div class="header-result">W/L</div>
+        </div>
+    `;
     games.forEach(game => {
-        const isFutureGame = !game.team1?.final && !game.team2?.final;
-        const date = game.date || 'TBD';
+        const isTeam1 = game.team1.name === teamName;
+        const opponent = isTeam1 ? game.team2.name : game.team1.name;
+        const isFutureGame = !game.team1.final && !game.team2.final;
         
-        // Format date if it's in YYYY-MM-DD format
-        let formattedDate = date;
-        if (date.includes('-')) {
-            const [year, month, day] = date.split('-');
-            formattedDate = `${month}/${day}/${year}`;
-        }
-        
-        // Determine opponent and score
-        const isTeam1 = game.team1?.name === teamName;
-        const opponent = isTeam1 ? game.team2?.name : game.team1?.name;
-        const teamScore = isTeam1 ? game.team1?.final : game.team2?.final;
-        const opponentScore = isTeam1 ? game.team2?.final : game.team1?.final;
-        
-        // Determine result
-        let result = '';
-        if (!isFutureGame) {
-            if (teamScore > opponentScore) {
-                result = 'W';
-            } else if (teamScore < opponentScore) {
-                result = 'L';
-            } else {
-                result = 'T';
+        // Format date
+        let formattedDate = 'TBD';
+        if (game.date) {
+            // Handle both YYYY-MM-DD and MM/DD/YYYY formats
+            if (game.date.includes('-')) {
+                const [year, month, day] = game.date.split('-');
+                formattedDate = `${month}/${day}`;
+            } else if (game.date.includes('/')) {
+                const [month, day] = game.date.split('/');
+                formattedDate = `${month}/${day}`;
             }
         }
         
-        // Format score display
-        let scoreDisplay = isFutureGame ? 'TBD' : `${teamScore}-${opponentScore}`;
-        if (game.team1?.ot_so || game.team2?.ot_so) {
-            scoreDisplay += ' (OT)';
+        // Determine W/L/T result
+        let result = '';
+        if (!isFutureGame) {
+            if (game.winner === 'Tie') {
+                result = 'T';
+            } else {
+                result = game.winner === teamName ? 'W' : 'L';
+            }
+        }
+        
+        // Format score
+        let scoreDisplay = 'TBD';
+        if (!isFutureGame) {
+            const teamScore = isTeam1 ? game.team1.final : game.team2.final;
+            const opponentScore = isTeam1 ? game.team2.final : game.team1.final;
+            scoreDisplay = `${teamScore}-${opponentScore}`;
+            if (game.team1.ot_so) {
+                scoreDisplay += ` (${game.team1.ot_so})`;
+            }
         }
         
         html += `
-            <div class="schedule-row ${result.toLowerCase()}">
-                <div class="week">Week ${game.weekNumber}</div>
-                <div class="date">${formattedDate}</div>
-                <div class="opponent">vs ${opponent}</div>
-                <div class="score">${scoreDisplay}</div>
-                <div class="result">${result}</div>
+            <div class="schedule-row${isFutureGame ? ' future-game' : ''}">
+                <div class="schedule-week">${game.weekNumber}</div>
+                <div class="schedule-date">${formattedDate}</div>
+                <div class="schedule-opponent">
+                    <img class="team-logo" src="static/logos/${opponent.toLowerCase().replace(/\s+/g, '_')}.png" 
+                         alt="${opponent}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAzNiAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIGZpbGw9IiNFRUVFRUUiLz48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzk5OTk5OSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiPk5BPC90ZXh0Pjwvc3ZnPg=='">
+                    <span>${opponent}</span>
+                </div>
+                <div class="schedule-score">${scoreDisplay}</div>
+                <div class="schedule-result ${result.toLowerCase()}">${result}</div>
             </div>
         `;
     });
-    
     scheduleContainer.innerHTML = html;
 }
 
