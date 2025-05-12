@@ -269,7 +269,12 @@ function combineScheduleAndScores(teamName, scores) {
     // Add scores to the games
     scores.forEach(score => {
         // Find the game with matching week number
-        const gameIndex = teamGames.findIndex(game => game.weekNumber === score.weekNumber);
+        const gameIndex = teamGames.findIndex(game => {
+            const gameWeek = parseInt(game.weekNumber);
+            const scoreWeek = parseInt(score.weekNumber);
+            return gameWeek === scoreWeek;
+        });
+        
         console.log(`Looking for week ${score.weekNumber}, found at index:`, gameIndex);
         
         if (gameIndex !== -1) {
@@ -315,8 +320,12 @@ function renderTeamSchedule(teamName, games) {
         // Format date
         let formattedDate = 'TBD';
         if (game.date) {
-            const [month, day] = game.date.split('/');
-            if (month && day) {
+            // Handle both YYYY-MM-DD and MM/DD/YYYY formats
+            if (game.date.includes('-')) {
+                const [year, month, day] = game.date.split('-');
+                formattedDate = `${month}/${day}`;
+            } else if (game.date.includes('/')) {
+                const [month, day] = game.date.split('/');
                 formattedDate = `${month}/${day}`;
             }
         }
