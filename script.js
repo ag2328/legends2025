@@ -5,13 +5,14 @@ import { standingsPage, teamPage, standingsContainer, lastUpdated } from './dom.
 // Configuration
 let SHEET_URL = null;
 let STATIC_DATA = null;
+const BASE_URL = 'https://ag2328.github.io/legends2025';
 
 // Load static data
 async function loadStaticData() {
     try {
         const [scheduleResponse, rostersResponse] = await Promise.all([
-            fetch('/static/data/schedule.json'),
-            fetch('/static/data/rosters.json')
+            fetch(`${BASE_URL}/static/data/schedule.json`),
+            fetch(`${BASE_URL}/static/data/rosters.json`)
         ]);
         
         if (!scheduleResponse.ok || !rostersResponse.ok) {
