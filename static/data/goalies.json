@@ -1,0 +1,21 @@
+{
+    "lastUpdated": "2025-05-08T12:06:28.692945",
+    "teams": {
+        "Maple Leafs": {
+            "number": 12,
+            "name": "Ryan D."
+        },
+        "Canadiens": {
+            "number": 56,
+            "name": "Bodhi F."
+        },
+        "Bruins": {
+            "number": 8,
+            "name": "London C."
+        },
+        "Red Wings": {
+            "number": 0,
+            "name": "William Y."
+        }
+    }
+} 

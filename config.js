@@ -3,57 +3,77 @@ const BASE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS2z2qeT
 
 // Sheet GID mappings - will be populated dynamically
 let SHEET_MAPPINGS = {
-    'standings': '0'  // Main standings sheet is always 0
+    'standings': '0'  // Additional mapping for standings
 };
 
 // Track initialization state
 let isInitialized = false;
 
+// Function to parse CSV line with quoted values
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
+
 // Function to fetch all sheet mappings from the workbook
 async function fetchSheetMappings() {
     if (isInitialized) {
-        console.log('Sheet mappings already initialized');
+        console.log('Sheet mappings already initialized:', SHEET_MAPPINGS);
         return SHEET_MAPPINGS;
     }
 
     try {
-        console.log('Fetching sheet mappings from GID: 26105431...');
+        // Use the correct URL format for the GID Mapping sheet
         const mappingUrl = `${BASE_SHEET_URL}?gid=26105431&single=true&output=csv`;
-        console.log('Mapping URL:', mappingUrl);
+        console.log('Fetching sheet mappings from:', mappingUrl);
         
         // Fetch the GID Mapping sheet
         const response = await fetch(mappingUrl);
-        console.log('Mapping sheet response status:', response.status);
+        console.log('Mapping response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}`);
         }
         
         const data = await response.text();
-        console.log('Raw GID mapping data:', data);
+        console.log('Received mapping data:', data);
         
         if (!data || data.trim() === '') {
             throw new Error('Received empty data from the GID Mapping sheet');
         }
         
+        // Parse the CSV data
         const lines = data.split(/\r?\n/);
-        console.log('Number of lines in mapping data:', lines.length);
+        console.log('Split mapping data into lines:', lines);
         
         // Process each line to extract sheet names and GIDs
         lines.forEach((line, index) => {
-            console.log(`Processing line ${index + 1}:`, line);
-            const parts = line.split(',');
+            if (index === 0) return; // Skip header row
+            if (!line.trim()) return; // Skip empty lines
+            
+            const parts = parseCSVLine(line);
             if (parts.length >= 2) {
-                const sheetName = parts[0]?.trim();
-                const gid = parts[1]?.trim();
-                if (sheetName && gid) {
+                const sheetName = parts[0].replace(/^"|"$/g, ''); // Remove surrounding quotes
+                const gid = parts[1].replace(/^"|"$/g, ''); // Remove surrounding quotes
+                if (sheetName && gid && sheetName !== 'Sheets') {  // Additional check to skip header
+                    console.log(`Adding mapping for sheet "${sheetName}" with GID "${gid}"`);
                     SHEET_MAPPINGS[sheetName] = gid;
-                    console.log(`Added mapping: ${sheetName} -> ${gid}`);
-                } else {
-                    console.warn(`Invalid mapping data in line ${index + 1}:`, { sheetName, gid });
                 }
-            } else {
-                console.warn(`Invalid line format in line ${index + 1}:`, line);
             }
         });
         
@@ -61,8 +81,8 @@ async function fetchSheetMappings() {
             throw new Error('No valid sheet mappings found in the data');
         }
         
+        console.log('Final sheet mappings:', SHEET_MAPPINGS);
         isInitialized = true;
-        console.log('Sheet mappings updated:', SHEET_MAPPINGS);
         return SHEET_MAPPINGS;
     } catch (error) {
         console.error('Error fetching sheet mappings:', error);
@@ -84,7 +104,9 @@ async function getSheetUrl(sheetName) {
         console.warn(`Sheet "${sheetName}" not found in mappings. Available sheets:`, Object.keys(SHEET_MAPPINGS));
         throw new Error(`Sheet "${sheetName}" not found in mappings`);
     }
-    return `${BASE_SHEET_URL}?gid=${gid}&single=true&output=csv`;
+    // Add timestamp to prevent caching
+    const timestamp = new Date().getTime();
+    return `${BASE_SHEET_URL}?gid=${gid}&single=true&output=csv&_t=${timestamp}`;
 }
 
 // Function to get all available sheet names
@@ -94,9 +116,7 @@ async function getAvailableSheets() {
         await fetchSheetMappings();
     }
     
-    const sheets = Object.keys(SHEET_MAPPINGS);
-    console.log('Available sheets:', sheets);
-    return sheets;
+    return Object.keys(SHEET_MAPPINGS);
 }
 
 // Export the configuration

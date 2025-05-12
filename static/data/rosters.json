@@ -1,0 +1,213 @@
+{
+    "lastUpdated": "2025-05-08T12:06:28.692945",
+    "teams": {
+        "Maple Leafs": {
+            "players": [
+                {
+                    "number": 6,
+                    "name": "Ryan C."
+                },
+                {
+                    "number": 34,
+                    "name": "Preston C."
+                },
+                {
+                    "number": 72,
+                    "name": "Julian D."
+                },
+                {
+                    "number": 27,
+                    "name": "Elijah F."
+                },
+                {
+                    "number": 28,
+                    "name": "Noah G."
+                },
+                {
+                    "number": 8,
+                    "name": "Ryan G."
+                },
+                {
+                    "number": 45,
+                    "name": "Milas G."
+                },
+                {
+                    "number": 13,
+                    "name": "Jason G"
+                },
+                {
+                    "number": 15,
+                    "name": "Nathan L."
+                },
+                {
+                    "number": 36,
+                    "name": "Addy O."
+                },
+                {
+                    "number": 57,
+                    "name": "Briar P."
+                }
+            ]
+        },
+        "Canadiens": {
+            "players": [
+                {
+                    "number": 0,
+                    "name": "Michael N."
+                },
+                {
+                    "number": 0,
+                    "name": "Hunter E."
+                },
+                {
+                    "number": 22,
+                    "name": "Jake F."
+                },
+                {
+                    "number": 86,
+                    "name": "Kylie F."
+                },
+                {
+                    "number": 21,
+                    "name": "Dylan F."
+                },
+                {
+                    "number": 0,
+                    "name": "Harper G."
+                },
+                {
+                    "number": 23,
+                    "name": "Luca H."
+                },
+                {
+                    "number": 2,
+                    "name": "Cristian K."
+                },
+                {
+                    "number": 15,
+                    "name": "Marley M."
+                },
+                {
+                    "number": 18,
+                    "name": "Brady M."
+                },
+                {
+                    "number": 4,
+                    "name": "Eithan M."
+                }
+            ]
+        },
+        "Bruins": {
+            "players": [
+                {
+                    "number": 24,
+                    "name": "Gaby B."
+                },
+                {
+                    "number": 5,
+                    "name": "Lucy B."
+                },
+                {
+                    "number": 0,
+                    "name": "Tyler B."
+                },
+                {
+                    "number": 83,
+                    "name": "Gustavo C."
+                },
+                {
+                    "number": 0,
+                    "name": "Harry C."
+                },
+                {
+                    "number": 8,
+                    "name": "Jadiel H."
+                },
+                {
+                    "number": 33,
+                    "name": "Nate M."
+                },
+                {
+                    "number": 18,
+                    "name": "MJ M."
+                },
+                {
+                    "number": 27,
+                    "name": "Bentlee N."
+                },
+                {
+                    "number": 6,
+                    "name": "Braiden N."
+                },
+                {
+                    "number": 61,
+                    "name": "Kaiden S."
+                },
+                {
+                    "number": 24,
+                    "name": "Ilan S."
+                },
+                {
+                    "number": 0,
+                    "name": "Phineas T."
+                }
+            ]
+        },
+        "Red Wings": {
+            "players": [
+                {
+                    "number": 0,
+                    "name": "Liam B."
+                },
+                {
+                    "number": 0,
+                    "name": "Jacob F."
+                },
+                {
+                    "number": 0,
+                    "name": "Isabella G."
+                },
+                {
+                    "number": 0,
+                    "name": "Nick G."
+                },
+                {
+                    "number": 23,
+                    "name": "Daelyn L."
+                },
+                {
+                    "number": 70,
+                    "name": "Hannah L."
+                },
+                {
+                    "number": 0,
+                    "name": "Daisy M."
+                },
+                {
+                    "number": 0,
+                    "name": "Brandon M."
+                },
+                {
+                    "number": 0,
+                    "name": "Lauren M."
+                },
+                {
+                    "number": 0,
+                    "name": "Nicholas Q."
+                },
+                {
+                    "number": 19,
+                    "name": "Josiah R."
+                },
+                {
+                    "number": 0,
+                    "name": "Oliver S."
+                },
+                {
+                    "number": 0,
+                    "name": "Alex W."
+                }
+            ]
+        }
+    }
+}

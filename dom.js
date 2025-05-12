@@ -1,8 +1,16 @@
 // Shared DOM Elements
-export const standingsPage = document.getElementById('standings-page');
-export const teamPage = document.getElementById('team-page');
-export const standingsContainer = document.getElementById('standings');
-export const scheduleContainer = document.getElementById('schedule');
-export const lastUpdated = document.getElementById('last-updated');
-export const lastUpdatedTeam = document.getElementById('last-updated-team');
-export const pageTitle = document.querySelector('#team-page .app-title'); 
+function getElement(id) {
+    const element = document.getElementById(id);
+    if (!element) {
+        console.warn(`Element with id "${id}" not found`);
+    }
+    return element;
+}
+
+export const standingsPage = getElement('standings-page');
+export const teamPage = getElement('team-page');
+export const standingsContainer = getElement('standings');
+export const scheduleContainer = getElement('schedule');
+export const lastUpdated = getElement('last-updated');
+export const lastUpdatedTeam = getElement('last-updated-team');
+export const pageTitle = document.querySelector('#team-page .app-title') || null; 

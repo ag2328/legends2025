@@ -1,0 +1,12 @@
+{
+  "name": "legends2025",
+  "version": "1.0.0",
+  "description": "Legends 2025 Leaderboard",
+  "main": "update_rosters.js",
+  "scripts": {
+    "update-rosters": "node update_rosters.js"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  }
+} 

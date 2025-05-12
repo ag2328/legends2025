@@ -4,42 +4,89 @@ import { standingsPage, teamPage, standingsContainer, lastUpdated } from './dom.
 
 // Configuration
 let SHEET_URL = null;
+let STATIC_DATA = null;
+
+// Load static data
+async function loadStaticData() {
+    try {
+        const [scheduleResponse, rostersResponse] = await Promise.all([
+            fetch('/static/data/schedule.json'),
+            fetch('/static/data/rosters.json')
+        ]);
+        
+        if (!scheduleResponse.ok || !rostersResponse.ok) {
+            throw new Error('Failed to load static data');
+        }
+        
+        const schedule = await scheduleResponse.json();
+        const rosters = await rostersResponse.json();
+        
+        STATIC_DATA = {
+            schedule,
+            rosters,
+            teams: Object.keys(schedule.teams)
+        };
+        
+        console.log('Loaded static data:', STATIC_DATA);
+        return STATIC_DATA;
+    } catch (error) {
+        console.error('Error loading static data:', error);
+        throw error;
+    }
+}
+
+// Function to parse CSV line with quoted values
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
 
 // Initialize the application
 async function initialize() {
     try {
         console.log('Initializing application...');
-        // Fetch sheet mappings first
+        console.log('Loading static data...');
+        await loadStaticData();
         console.log('Fetching sheet mappings...');
         await fetchSheetMappings();
-        console.log('Sheet mappings fetched successfully');
-        
-        // Get the standings URL after mappings are initialized
+        console.log('Getting sheet URL...');
         SHEET_URL = await getSheetUrl('standings');
-        console.log('Standings URL:', SHEET_URL);
-        
-        // Then handle the initial page load
+        console.log('Sheet URL:', SHEET_URL);
+        console.log('Handling hash change...');
         await handleHashChange();
+        console.log('Initialization complete');
     } catch (error) {
         console.error('Error initializing application:', error);
         displayError('Failed to initialize application. Please refresh the page.');
+        throw error;
     }
 }
 
 // Function to handle hash changes
 async function handleHashChange() {
     const hash = window.location.hash;
-    console.log('Hash changed:', hash);
     
     if (hash.startsWith('#team/')) {
-        // Show team page and hide standings
         standingsPage.style.display = 'none';
         teamPage.classList.add('active');
     } else {
-        // Show standings and hide team page
         standingsPage.style.display = 'block';
         teamPage.classList.remove('active');
-        // Only fetch standings data when on the standings page
         await fetchAndDisplayData();
     }
 }
@@ -47,37 +94,95 @@ async function handleHashChange() {
 // Function to fetch data from Google Sheets
 async function fetchLeaderboardData() {
     try {
-        console.log('Starting fetchLeaderboardData...');
         if (!SHEET_URL) {
-            console.log('Getting standings URL...');
+            console.log('SHEET_URL not set, fetching from getSheetUrl...');
             SHEET_URL = await getSheetUrl('standings');
+            console.log('SHEET_URL set to:', SHEET_URL);
         }
-        console.log('Fetching from URL:', SHEET_URL);
         
-        const response = await fetch(SHEET_URL, {
-            method: 'GET',
-            headers: {
-                'Accept': 'text/csv',
-                'Cache-Control': 'no-cache'
+        console.log('Fetching data from:', SHEET_URL);
+        let response;
+        try {
+            response = await fetch(SHEET_URL, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'text/csv'
+                }
+            });
+            console.log('Response received:', response);
+            console.log('Response status:', response.status);
+            console.log('Response status text:', response.statusText);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+            
+            // Log the raw response for debugging
+            const rawResponse = await response.text();
+            console.log('Raw response:', rawResponse);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}, statusText: ${response.statusText}, body: ${rawResponse}`);
             }
-        });
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            
+            if (!rawResponse || rawResponse.trim() === '') {
+                throw new Error('Received empty data from the server');
+            }
+            
+            // Parse CSV data
+            const lines = rawResponse.split(/\r?\n/);
+            console.log('Split data into lines:', lines);
+            
+            if (lines.length < 2) {
+                throw new Error('Not enough data in response');
+            }
+            
+            // Get headers and remove quotes
+            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
+            console.log('Headers:', headers);
+            
+            // Parse data rows
+            const dynamicData = lines.slice(1)
+                .filter(line => line.trim())
+                .map(line => {
+                    const values = parseCSVLine(line).map(v => v.replace(/^"|"$/g, ''));
+                    console.log('Parsed values:', values);
+                    return {
+                        Team: values[1] || '',  // Second column is Team (first is empty)
+                        Wins: parseInt(values[2] || '0', 10),
+                        Losses: parseInt(values[3] || '0', 10),
+                        Ties: parseInt(values[4] || '0', 10),
+                        'Games Played': parseInt(values[5] || '0', 10),
+                        'Goals Scored': parseInt(values[6] || '0', 10),
+                        Points: parseInt(values[7] || '0', 10)
+                    };
+                })
+                .filter(row => row.Team);
+            
+            console.log('Dynamic data from Google Sheets:', dynamicData);
+            
+            // Merge static and dynamic data
+            const mergedData = STATIC_DATA.teams.map(teamName => {
+                const dynamicTeam = dynamicData.find(d => d.Team === teamName) || {
+                    Team: teamName,
+                    Wins: 0,
+                    Losses: 0,
+                    Ties: 0,
+                    'Games Played': 0,
+                    'Goals Scored': 0,
+                    Points: 0
+                };
+                
+                return {
+                    ...dynamicTeam,
+                    schedule: STATIC_DATA.schedule.teams[teamName].schedule,
+                    players: STATIC_DATA.rosters.teams[teamName].players
+                };
+            });
+            
+            console.log('Merged data:', mergedData);
+            return { headers, data: mergedData };
+        } catch (error) {
+            console.error('Error reading response:', error);
+            throw error;
         }
-        
-        const data = await response.text();
-        console.log('Raw CSV data received:', data);
-        
-        if (!data || data.trim() === '') {
-            throw new Error('Received empty data from the server');
-        }
-        
-        const parsedData = parseCSV(data);
-        console.log('Parsed data:', parsedData);
-        return parsedData;
     } catch (error) {
         console.error('Error in fetchLeaderboardData:', error);
         displayError(`Error loading data: ${error.message}. Please ensure the Google Sheet is public and accessible.`);
@@ -85,63 +190,8 @@ async function fetchLeaderboardData() {
     }
 }
 
-// Parse CSV data
-function parseCSV(csvText) {
-    console.log('Starting parseCSV with text:', csvText);
-    const lines = csvText.split(/\r?\n/);
-    console.log('Split into lines:', lines);
-    
-    if (lines.length < 2) throw new Error('Invalid CSV data');
-    
-    // Find the header row (skip empty rows)
-    let headerRow = 0;
-    while (headerRow < lines.length && !lines[headerRow].trim()) {
-        headerRow++;
-    }
-    
-    if (headerRow >= lines.length) throw new Error('No headers found');
-    
-    console.log('Found header row:', lines[headerRow]);
-    
-    // Clean up headers
-    const headers = ['Team', 'Wins', 'Losses', 'Ties', 'Games Played', 'Goals Scored', 'Points'];
-    
-    console.log('Using headers:', headers);
-    
-    const data = [];
-    
-    // Process data rows
-    for (let i = headerRow + 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        
-        const values = lines[i].split(',');
-        console.log('Processing row:', values);
-        
-        // Skip empty rows
-        if (values.length < 2) continue;
-        
-        const entry = {
-            Team: values[1]?.trim(),
-            Wins: parseInt(values[2]?.trim() || '0', 10),
-            Losses: parseInt(values[3]?.trim() || '0', 10),
-            Ties: parseInt(values[4]?.trim() || '0', 10),
-            'Games Played': parseInt(values[5]?.trim() || '0', 10),
-            'Goals Scored': parseInt(values[6]?.trim() || '0', 10),
-            Points: parseInt(values[7]?.trim() || '0', 10)
-        };
-        
-        if (entry.Team) {
-            data.push(entry);
-        }
-    }
-    
-    console.log('Processed data:', data);
-    return { headers, data };
-}
-
 // Render the leaderboard with Yahoo-style grid layout
 function renderLeaderboard(leaderboardData) {
-    console.log('Rendering leaderboard with data:', leaderboardData);
     if (!leaderboardData || !leaderboardData.data.length) {
         standingsContainer.innerHTML = '<div class="error">No data available</div>';
         return;
@@ -155,8 +205,6 @@ function renderLeaderboard(leaderboardData) {
         if (winsDiff !== 0) return winsDiff;
         return b['Goals Scored'] - a['Goals Scored'];
     });
-
-    console.log('Sorted data:', sortedData);
 
     let html = '';
     // Header row
@@ -190,7 +238,6 @@ function renderLeaderboard(leaderboardData) {
         `;
     });
     standingsContainer.innerHTML = html;
-    console.log('Rendered HTML:', html);
 }
 
 // Update last updated timestamp
@@ -218,7 +265,6 @@ function displayError(message) {
 // Main function to fetch and display data
 async function fetchAndDisplayData() {
     try {
-        console.log('Starting fetchAndDisplayData...');
         if (!standingsContainer) {
             throw new Error('Standings container not found!');
         }
@@ -227,7 +273,6 @@ async function fetchAndDisplayData() {
         
         const standingsData = await fetchLeaderboardData();
         if (standingsData) {
-            console.log('Standings data received:', standingsData);
             renderLeaderboard(standingsData);
             updateLastUpdated();
         } else {
@@ -243,19 +288,29 @@ async function fetchAndDisplayData() {
 console.log('Script loaded, starting initialization...');
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, starting initialization...');
-    initialize().catch(error => {
-        console.error('Failed to initialize:', error);
-        displayError('Failed to initialize application. Please refresh the page.');
-    });
+    try {
+        initialize().catch(error => {
+            console.error('Failed to initialize:', error);
+            displayError('Failed to initialize application. Please refresh the page.');
+        });
+    } catch (error) {
+        console.error('Error in DOMContentLoaded handler:', error);
+        displayError('Failed to start application. Please refresh the page.');
+    }
 });
 
 // Set up hash change listener
 window.addEventListener('hashchange', () => {
     console.log('Hash change detected, handling...');
-    handleHashChange().catch(error => {
-        console.error('Error handling hash change:', error);
-        displayError('Error loading page. Please refresh.');
-    });
+    try {
+        handleHashChange().catch(error => {
+            console.error('Error handling hash change:', error);
+            displayError('Error loading page. Please refresh.');
+        });
+    } catch (error) {
+        console.error('Error in hashchange handler:', error);
+        displayError('Failed to handle page change. Please refresh.');
+    }
 });
 
 // Refresh data every 5 minutes
