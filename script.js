@@ -249,16 +249,9 @@ function renderLeaderboard(leaderboardData) {
     standingsContainer.innerHTML = html;
 }
 
-// Update last updated timestamp
+// Update last updated message
 function updateLastUpdated() {
-    const timestamp = LAST_SHEET_UPDATE || new Date();
-    lastUpdated.textContent = `Last updated: ${timestamp.toLocaleString(undefined, {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    })}`;
+    lastUpdated.textContent = 'Standings updated by 8pm on Mondays';
 }
 
 // Display error message

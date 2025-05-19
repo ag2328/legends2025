@@ -23,6 +23,20 @@ async function loadScheduleData() {
     }
 }
 
+// Function to clear cache when leaving team page
+function clearCache() {
+    scheduleData = null;
+    currentTeamName = null;
+    const scheduleContainer = document.getElementById('schedule');
+    if (scheduleContainer) {
+        scheduleContainer.innerHTML = '<div class="loading">Loading schedule data...</div>';
+    }
+    const statsContainer = document.getElementById('player-stats-container');
+    if (statsContainer) {
+        statsContainer.innerHTML = '';
+    }
+}
+
 // Function to handle hash changes
 async function handleHashChange() {
     const hash = window.location.hash;
@@ -106,6 +120,13 @@ async function handleHashChange() {
                 </div>
             `;
         }
+    } else {
+        // Clear cache when leaving team page
+        clearCache();
+        
+        // Show standings page and hide team page
+        standingsPage.style.display = 'block';
+        teamPage.classList.remove('active');
     }
 }
 
@@ -383,16 +404,9 @@ function renderTeamSchedule(teamName, games) {
     scheduleContainer.innerHTML = html;
 }
 
-// Function to update last updated timestamp
+// Function to update last updated message
 function updateLastUpdated() {
-    const now = new Date();
-    lastUpdatedTeam.textContent = `Last updated: ${now.toLocaleString(undefined, {
-        year: 'numeric',
-        month: 'numeric',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    })}`;
+    lastUpdatedTeam.textContent = 'Standings updated by 8pm on Mondays';
 }
 
 async function fetchAndDisplayAllGames(teamName) {
@@ -407,6 +421,7 @@ async function fetchAndDisplayAllGames(teamName) {
         
         // Fetch scores for each week
         const allScores = [];
+        
         for (const weekName of weekSheets) {
             const url = await getSheetUrl(weekName);
             console.log(`Fetching scores for ${weekName} from:`, url);
@@ -441,7 +456,7 @@ async function fetchAndDisplayAllGames(teamName) {
         
         renderTeamSchedule(teamName, combinedGames);
         
-        // Update last updated timestamp
+        // Update last updated message
         updateLastUpdated();
     } catch (error) {
         console.error('Error in fetchAndDisplayAllGames:', error);
