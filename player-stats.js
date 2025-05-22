@@ -117,11 +117,13 @@ function renderPlayerStats(teamName, playerData) {
 async function fetchPlayerStats(teamName) {
     try {
         const url = await getSheetUrl(teamName);
+        console.log('Fetching player stats from:', url);
         const response = await fetch(url);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.text();
+        console.log('Raw player stats data:', data);
         return parsePlayerStats(data);
     } catch (error) {
         console.error('Error fetching player stats:', error);
@@ -131,6 +133,7 @@ async function fetchPlayerStats(teamName) {
 
 // Function to parse the CSV data into player stats
 function parsePlayerStats(csvData) {
+    console.log('Starting to parse player stats');
     const lines = csvData.split(/\r?\n/);
     const stats = {
         players: {},
@@ -147,6 +150,7 @@ function parsePlayerStats(csvData) {
         
         // Look for the start of player stats section
         if (line.includes('Player #,Player Name,Goals')) {
+            console.log('Found player stats section at line:', i);
             inPlayerStatsSection = true;
             inGoalieStatsSection = false;
             continue;
@@ -162,8 +166,10 @@ function parsePlayerStats(csvData) {
         // Parse player stats
         if (inPlayerStatsSection) {
             const [number, name, goals] = line.split(',').map(item => item.trim());
-            if (name && goals && !isNaN(parseInt(number))) {
+            console.log('Parsing player line:', { number, name, goals });
+            if (name && !isNaN(parseInt(number))) {
                 stats.players[name] = parseInt(goals) || 0;
+                console.log('Added player stats:', { name, goals: stats.players[name] });
             }
         }
         
@@ -181,11 +187,13 @@ function parsePlayerStats(csvData) {
         }
     }
     
+    console.log('Final parsed stats:', stats);
     return stats;
 }
 
 // Function to create the player stats grid
 function createPlayerStatsGrid(teamName, playerData, stats) {
+    console.log('Creating stats grid with data:', { teamName, playerData, stats });
     const container = document.createElement('div');
     container.className = 'player-stats-container';
 
@@ -205,11 +213,20 @@ function createPlayerStatsGrid(teamName, playerData, stats) {
     playerData.teams[teamName].players
         .sort((a, b) => a.number - b.number)
         .forEach(player => {
+            // Normalize player names for comparison
+            const playerName = player.name.trim();
+            const statsName = Object.keys(stats.players).find(name => 
+                name.trim() === playerName || 
+                name.trim() === playerName + '.' || 
+                name.trim() + '.' === playerName
+            );
+            console.log('Matching player:', { playerName, statsName, goals: stats.players[statsName] });
+            
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td style="text-align:center;">${player.number}</td>
                 <td style="text-align:center;">${player.name}</td>
-                <td style="text-align:center;">${stats.players[player.name] || 0}</td>
+                <td style="text-align:center;">${statsName ? stats.players[statsName] || 0 : 0}</td>
             `;
             tbody.appendChild(row);
         });
