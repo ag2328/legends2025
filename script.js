@@ -143,24 +143,41 @@ async function fetchLeaderboardData() {
                 throw new Error('Not enough data in response');
             }
             
-            // Get headers and remove quotes
-            const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
+            // Find the first non-empty header row (should contain 'Team')
+            let headerLineIndex = lines.findIndex(line => line && line.toLowerCase().includes('team'));
+            if (headerLineIndex === -1) {
+                throw new Error('Could not find header row with "Team"');
+            }
+            const headers = parseCSVLine(lines[headerLineIndex]).map(h => h.replace(/^"|"$/g, ''));
             console.log('Headers:', headers);
-            
-            // Parse data rows
-            const dynamicData = lines.slice(1)
+            const headerMap = {};
+            headers.forEach((h, idx) => {
+                headerMap[h.trim().toLowerCase()] = idx;
+            });
+
+            // Parse data rows after the header
+            const dynamicData = lines.slice(headerLineIndex + 1)
                 .filter(line => line.trim())
                 .map(line => {
                     const values = parseCSVLine(line).map(v => v.replace(/^"|"$/g, ''));
-                    console.log('Parsed values:', values);
+                    const team = values[headerMap['team name'] || headerMap['team'] || 0] || '';
+                    const wins = parseInt(values[headerMap['wins']], 10) || 0;
+                    const tiebreakerWins = parseInt(values[headerMap['tiebreaker wins']], 10) || 0;
+                    const losses = parseInt(values[headerMap['losses']], 10) || 0;
+                    const tiebreakerLoss = parseInt(values[headerMap['tiebreaker loss']], 10) || 0;
+                    const ties = parseInt(values[headerMap['ties']], 10) || 0;
+                    const gamesPlayed = parseInt(values[headerMap['games played']], 10) || 0;
+                    const goalsScored = parseInt(values[headerMap['goals scored']], 10) || 0;
+                    const points = parseInt(values[headerMap['points']], 10) || 0;
+
                     return {
-                        Team: values[1] || '',  // Second column is Team (first is empty)
-                        Wins: parseInt(values[2] || '0', 10),
-                        Losses: parseInt(values[3] || '0', 10),
-                        Ties: parseInt(values[4] || '0', 10),
-                        'Games Played': parseInt(values[5] || '0', 10),
-                        'Goals Scored': parseInt(values[6] || '0', 10),
-                        Points: parseInt(values[7] || '0', 10)
+                        Team: team,
+                        Wins: wins + tiebreakerWins,
+                        Losses: losses + tiebreakerLoss,
+                        Ties: ties,
+                        'Games Played': gamesPlayed,
+                        'Goals Scored': goalsScored,
+                        Points: points
                     };
                 })
                 .filter(row => row.Team);

@@ -235,7 +235,8 @@ function parseGameScores(csvData, weekName, teamName) {
             return null;
         }
         
-        const [score1, score2] = scoreStr.split('-').map(s => parseInt(s.trim(), 10));
+        // Handle both hyphen and slash separators
+        const [score1, score2] = scoreStr.split(/[-/]/).map(s => parseInt(s.trim(), 10));
         
         if (isNaN(score1) || isNaN(score2)) {
             console.log(`Invalid score format for Game ${gameNumber}:`, scoreStr);
