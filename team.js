@@ -407,7 +407,7 @@ function renderTeamSchedule(teamName, games) {
 
 // Function to update last updated message
 function updateLastUpdated() {
-    lastUpdatedTeam.textContent = 'Standings updated by 8pm on Mondays';
+    lastUpdatedTeam.innerHTML = '<span style="text-decoration: line-through;">Standings updated by 8pm on Mondays</span><br>Thank You for a Great Summer Season!';
 }
 
 async function fetchAndDisplayAllGames(teamName) {

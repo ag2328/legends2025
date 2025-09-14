@@ -268,7 +268,7 @@ function renderLeaderboard(leaderboardData) {
 
 // Update last updated message
 function updateLastUpdated() {
-    lastUpdated.textContent = 'Standings updated by 8pm on Mondays';
+    lastUpdated.innerHTML = '<span style="text-decoration: line-through;">Standings updated by 8pm on Mondays</span><br>Thank You for a Great Summer Season!';
 }
 
 // Display error message
