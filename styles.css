@@ -183,6 +183,40 @@ body {
   margin-top: 24px;
 }
 
+/* Season Link Styles */
+.season-link-container {
+  text-align: center;
+  margin-top: 32px;
+  margin-bottom: 16px;
+}
+
+.season-link {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 16px 32px;
+  border-radius: 12px;
+  border: 2px solid var(--accent);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 45, 85, 0.3);
+}
+
+.season-link:hover {
+  background: transparent;
+  color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 45, 85, 0.4);
+}
+
+.season-link:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 45, 85, 0.3);
+}
+
 @media (max-width: 500px) {
   .standings-header, .standings-row {
     font-size: 1.1em;
@@ -195,6 +229,13 @@ body {
   }
   .team-name {
     font-size: 1.2em;
+  }
+  
+  /* Mobile season link styling */
+  .season-link {
+    font-size: 16px;
+    padding: 14px 24px;
+    margin: 0 16px;
   }
 }
 
