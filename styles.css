@@ -192,7 +192,7 @@ body {
 
 .season-link {
   display: inline-block;
-  background: var(--accent);
+  background: var(--logo-blue);
   color: var(--text-primary);
   text-decoration: none;
   font-family: 'Outfit', sans-serif;
@@ -200,21 +200,21 @@ body {
   font-size: 18px;
   padding: 16px 32px;
   border-radius: 12px;
-  border: 2px solid var(--accent);
+  border: 2px solid var(--logo-blue);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 45, 85, 0.3);
+  box-shadow: 0 4px 12px rgba(126, 192, 238, 0.3);
 }
 
 .season-link:hover {
   background: transparent;
-  color: var(--accent);
+  color: var(--logo-blue);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 45, 85, 0.4);
+  box-shadow: 0 6px 16px rgba(126, 192, 238, 0.4);
 }
 
 .season-link:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(255, 45, 85, 0.3);
+  box-shadow: 0 2px 8px rgba(126, 192, 238, 0.3);
 }
 
 @media (max-width: 500px) {
